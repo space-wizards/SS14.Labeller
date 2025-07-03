@@ -112,6 +112,14 @@ async Task PrReviewHandler(JsonDocument json, HttpClient client)
     if (state != "approved" && state != "changes_requested")
         return;
 
+    // Ignore reviews if PR is closed or merged
+    var prState = pr.GetProperty("state").GetString();
+    // "closed" means closed or merged, but let's also check for merged explicitly if available
+    bool isClosed = prState == "closed";
+    bool isMerged = pr.TryGetProperty("merged_at", out var mergedAtProp) && mergedAtProp.ValueKind != JsonValueKind.Null;
+    if (isClosed || isMerged)
+        return;
+
     var owner = repo.GetProperty("owner").GetProperty("login").GetString()!;
     var repoName = repo.GetProperty("name").GetString()!;
     var number = pr.GetProperty("number").GetInt32();
