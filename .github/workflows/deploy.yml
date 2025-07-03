@@ -13,7 +13,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     env:
-      IMAGE_NAME: ghcr.io/${{ github.repository }}
+      IMAGE_NAME: ghcr.io/space-wizards/ss14.labeller
 
     steps:
       - name: Checkout repository
