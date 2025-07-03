@@ -108,6 +108,10 @@ async Task PrReviewHandler(JsonDocument json, HttpClient client)
     var user = review.GetProperty("user").GetProperty("login").GetString();
     var state = review.GetProperty("state").GetString();
 
+    // only process if the review state is "approved" or "changes_requested" (ignore comments and other states)
+    if (state != "approved" && state != "changes_requested")
+        return;
+
     var owner = repo.GetProperty("owner").GetProperty("login").GetString()!;
     var repoName = repo.GetProperty("name").GetString()!;
     var number = pr.GetProperty("number").GetInt32();
@@ -122,13 +126,16 @@ async Task PrReviewHandler(JsonDocument json, HttpClient client)
     var permission = permJson.RootElement.GetProperty("permission").GetString();
     if (permission is "write" or "admin")
     {
+        await RemoveLabel(client, owner, repoName, number, labelStatusRequireReview);
+
         if (state == "approved")
         {
             await AddLabel(client, owner, repoName, number, labelStatusApproved);
         }
-
-        await RemoveLabel(client, owner, repoName, number, labelStatusRequireReview);
-        await AddLabel(client, owner, repoName, number, labelStatusAwaitingChanges);
+        else if (state == "changes_requested")
+        {
+            await AddLabel(client, owner, repoName, number, labelStatusAwaitingChanges);
+        }
     }
 }
 
