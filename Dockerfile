@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0-bookworm-slim AS build
 ARG TARGETPLATFORM
 WORKDIR /src
 
@@ -20,7 +20,7 @@ RUN echo "Building for platform: $TARGETPLATFORM" \
     esac \
     && dotnet publish -c Release -r $RID --self-contained true /p:PublishAot=true -o /app
 
-FROM debian:bullseye-slim AS final
+FROM debian:bookworm-slim AS final
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
