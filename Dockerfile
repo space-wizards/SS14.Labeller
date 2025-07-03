@@ -16,7 +16,7 @@ RUN echo "Building for platform: $TARGETPLATFORM" \
     && case "$TARGETPLATFORM" in \
     "linux/amd64") export RID=linux-x64 ;; \
     "linux/arm64") export RID=linux-arm64 ;; \
-    *) export RID=linux-x64 ;; \
+    *) echo "Unsupported TARGETPLATFORM: $TARGETPLATFORM" && exit 1 ;; \
     esac \
     && dotnet publish -c Release -r $RID --self-contained true /p:PublishAot=true -o /app
 
