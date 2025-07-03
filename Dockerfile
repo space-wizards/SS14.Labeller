@@ -2,6 +2,12 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG TARGETPLATFORM
 WORKDIR /src
 
+# for NativeAOT we need to install a platform linker
+RUN apt-get update && \
+    apt-get install -y clang zlib1g-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 COPY . .
 
 # Map the Docker TARGETPLATFORM to .NET's RID
