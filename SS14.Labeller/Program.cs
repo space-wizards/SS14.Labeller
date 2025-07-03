@@ -53,6 +53,8 @@ if (githubSecret == null || githubToken == null)
     throw new InvalidOperationException("Missing required GITHUB_SECRET and GITHUB_TOKEN in ENV.");
 }
 
+app.MapGet("/", () => Results.Ok("Nik is a cat!"));
+
 app.MapPost("/webhook", async (HttpContext context, IHttpClientFactory clientFactory) =>
 {
     using var memStream = new MemoryStream();

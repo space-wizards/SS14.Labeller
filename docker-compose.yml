@@ -1,0 +1,13 @@
+version: "3.9"
+
+services:
+  ss14-labeller:
+    image: ghcr.io/space-wizards/ss14.labeller:latest
+    container_name: ss14-labeller
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      GITHUB_WEBHOOK_SECRET: ${GITHUB_WEBHOOK_SECRET}
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
+      ASPNETCORE_URLS: http://+:5000
