@@ -8,6 +8,6 @@ namespace SS14.Labeller;
 [JsonSerializable(typeof(IssuesEvent))]
 [JsonSerializable(typeof(PullRequestEvent))]
 [JsonSerializable(typeof(PullRequestReviewEvent))]
-public partial class GitHubJsonContext : JsonSerializerContext
+public partial class SourceGenerationContext : JsonSerializerContext
 {
 }

@@ -11,7 +11,7 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
     public async Task AddLabel(Repository repo, int number, string label)
     {
         var request = new AddLabelRequest { labels = [label] };
-        var json = JsonSerializer.Serialize(request, GitHubJsonContext.Default.AddLabelRequest);
+        var json = JsonSerializer.Serialize(request, SourceGenerationContext.Default.AddLabelRequest);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         await httpClient.PostAsync($"{BaseUrl}/repos/{repo.Owner.Login}/{repo.Name}/issues/{number}/labels", content);

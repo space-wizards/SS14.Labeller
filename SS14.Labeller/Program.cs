@@ -17,7 +17,7 @@ var builder = WebApplication.CreateSlimBuilder(args);
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
-    options.SerializerOptions.TypeInfoResolverChain.Insert(0, GitHubJsonContext.Default);
+    options.SerializerOptions.TypeInfoResolverChain.Insert(0, SourceGenerationContext.Default);
 });
 
 builder.Logging.ClearProviders();
