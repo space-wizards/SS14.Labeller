@@ -25,6 +25,16 @@ const string labelChangesShaders = labelChangesPrefix + "Shaders";
 const string labelChangesSprites = labelChangesPrefix + "Sprites";
 const string labelChangesUi = labelChangesPrefix + "UI";
 
+const string labelSizePrefix = "size/";
+var sizes = new Dictionary<int, string>()
+{
+    { 0, labelSizePrefix + "XS" },
+    { 10, labelSizePrefix + "S" },
+    { 100, labelSizePrefix + "M" },
+    { 1000, labelSizePrefix + "L" },
+    { 5000, labelSizePrefix + "XL" },
+};
+
 var builder = WebApplication.CreateSlimBuilder(args);
 
 builder.Services.ConfigureHttpJsonOptions(options =>
@@ -210,6 +220,38 @@ async Task PrHandler(JsonDocument json, HttpClient client)
         else
         {
             await ApplyRequiresReviewIfNotAlready();
+        }
+    }
+
+    if (action is "synchronize" or "opened")
+    {
+        var additions = pr.GetProperty("additions").GetInt32();
+        var deletions = pr.GetProperty("deletions").GetInt32();
+        var totalDiff = additions + deletions;
+
+        // remove the existing size/* labels
+        foreach (var label in labels)
+        {
+            if (label != null && label.StartsWith(labelSizePrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                await RemoveLabel(client, owner, repoName, number, label);
+            }
+        }
+
+        string? sizeLabel = null;
+        // ReSharper disable once LoopCanBeConvertedToQuery no fuck you, the resulting LINQ query is unreadable
+        foreach (var kvp in sizes.OrderByDescending(k => k.Key))
+        {
+            if (totalDiff < kvp.Key)
+                continue;
+
+            sizeLabel = kvp.Value;
+            break;
+        }
+
+        if (sizeLabel is not null && !labels.Contains(sizeLabel))
+        {
+            await AddLabel(client, owner, repoName, number, sizeLabel);
         }
     }
 
