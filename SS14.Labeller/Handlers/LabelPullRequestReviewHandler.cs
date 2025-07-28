@@ -30,10 +30,7 @@ public class LabelPullRequestReviewHandler(IGitHubApiClient client)
             return;
 
         var number = pr.Number;
-        var permJson = await client.EnsurePermissions(repo, user);
-
-
-        var permission = permJson.RootElement.GetProperty("permission").GetString();
+        var permission = await client.GetPermission(repo, user);
         if (permission is "write" or "admin")
         {
             await client.RemoveLabel(repo, number, StatusLabels.RequireReview);

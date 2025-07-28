@@ -48,14 +48,15 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
     }
 
     /// <inheritdoc />
-    public async Task<JsonDocument> EnsurePermissions(Repository repo, string? user)
+    public async Task<string?> GetPermission(Repository repo, string? user)
     {
         var permRes = await httpClient.GetAsync($"{BaseUrl}/repos/{repo.Owner.Login}/{repo.Name}/collaborators/{user}/permission");
         if (!permRes.IsSuccessStatusCode)
         {
             throw new Exception("Failed to get permissions! Does the github token have enough access?");
         }
-        return JsonDocument.Parse(await permRes.Content.ReadAsStringAsync());
+        var permJson = JsonDocument.Parse(await permRes.Content.ReadAsStringAsync());
+        return permJson.RootElement.GetProperty("permission").GetString();
     }
 }
 

@@ -40,9 +40,7 @@ public class LabelPullRequestHandler(IGitHubApiClient client) : RequestHandlerBa
             else if (targetBranch == "staging" && !labels.Contains(BranchLabels.Staging))
                 await client.AddLabel(repository, number, BranchLabels.Staging);
 
-            var permJson = await client.EnsurePermissions(repository, pr.User.Login);
-
-            var permission = permJson.RootElement.GetProperty("permission").GetString();
+            var permission = await client.GetPermission(repository, pr.User.Login);
             if (permission is "write" or "admin")
             {
                 await client.AddLabel(repository, number, StatusLabels.Approved);
