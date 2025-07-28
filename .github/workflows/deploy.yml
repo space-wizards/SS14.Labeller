@@ -39,19 +39,19 @@ jobs:
 
       - name: Publish NativeAOT app
         run: |
-          dotnet publish -c Release -r ${{ steps.setrid.outputs.rid }} --self-contained true /p:PublishAot=true -o publish
+          dotnet publish -c Release -r ${{ matrix.rid }} --self-contained true /p:PublishAot=true -o publish
 
       - name: Prepare release zip
         run: |
           mkdir release
           cp publish/SS14.Labeller release/
           cp README.md LICENCE.txt release/
-          cd release && zip -r ../SS14.Labeller-${{ steps.setrid.outputs.rid }}.zip .
+          cd release && zip -r ../SS14.Labeller-${{ matrix.rid }}.zip .
 
       - name: Upload release binary
         uses: softprops/action-gh-release@v2
         with:
-          files: SS14.Labeller-${{ steps.setrid.outputs.rid }}.zip
+          files: SS14.Labeller-${{ matrix.rid }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
