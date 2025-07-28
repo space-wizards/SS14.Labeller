@@ -1,0 +1,50 @@
+﻿using SS14.Labeller.GitHubApi;
+using SS14.Labeller.Labels;
+using SS14.Labeller.Models;
+
+namespace SS14.Labeller.Handlers;
+
+public class LabelPullRequestReviewHandler(IGitHubApiClient client)
+    : RequestHandlerBase<PullRequestReviewEvent>
+{
+    /// <inheritdoc />
+    public override string EventType => "pull_request_review";
+
+    /// <inheritdoc />
+    protected override async Task HandleInternal(PullRequestReviewEvent request, CancellationToken ct)
+    {
+        var pr = request.PullRequest;
+        var repo = request.Repository;
+        var user = request.Review.User.Login;
+
+        // only process if the review state is "approved" or "changes_requested" (ignore comments and other states)
+        var state = request.Review.State;
+        if (state != "approved" && state != "changes_requested")
+            return;
+
+        // Ignore reviews if PR is closed or merged
+        // "closed" means closed or merged, but let's also check for merged explicitly if available
+        bool isClosed = request.Review.State == "closed";
+        bool isMerged = pr.MergedAt != null;
+        if (isClosed || isMerged)
+            return;
+
+        var number = pr.Number;
+        var permJson = await client.EnsurePermissions(repo, user);
+
+
+        var permission = permJson.RootElement.GetProperty("permission").GetString();
+        if (permission is "write" or "admin")
+        {
+            await client.RemoveLabel(repo, number, StatusLabels.RequireReview);
+
+            await (state switch
+            {
+                "approved"
+                    => client.AddLabel(repo, number, StatusLabels.Approved),
+                "changes_requested"
+                    => client.AddLabel(repo, number, StatusLabels.AwaitingChanges)
+            });
+        }
+    }
+}
