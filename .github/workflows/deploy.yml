@@ -6,12 +6,61 @@ on:
         - 'v*.*.*' # Only triggers on version tags like v1.0.0
 
 permissions:
-  contents: read
+  contents: write
   packages: write
 
 jobs:
-  publish:
+  build-and-release:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [ linux/amd64, linux/arm64 ]
+    env:
+      IMAGE_NAME: ghcr.io/space-wizards/ss14.labeller
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Install NativeAOT Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang zlib1g-dev
+
+      - name: Set RID from platform
+        id: setrid
+        run: |
+          case "${{ matrix.platform }}" in
+            linux/amd64) echo "rid=linux-x64" >> $GITHUB_OUTPUT ;;
+            linux/arm64) echo "rid=linux-arm64" >> $GITHUB_OUTPUT ;;
+            *) echo "Unsupported platform"; exit 1 ;;
+          esac
+
+      - name: Publish NativeAOT app
+        run: |
+          dotnet publish -c Release -r ${{ steps.setrid.outputs.rid }} --self-contained true /p:PublishAot=true -o publish
+
+      - name: Prepare release zip
+        run: |
+          mkdir release
+          cp publish/SS14.Labeller release/
+          cp README.md LICENSE.txt release/
+          cd release && zip -r ../SS14.Labeller-${{ steps.setrid.outputs.rid }}.zip .
+
+      - name: Upload release binary
+        uses: softprops/action-gh-release@v2
+        with:
+          files: SS14.Labeller-${{ steps.setrid.outputs.rid }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  docker-publish:
+    runs-on: ubuntu-latest
+    needs: build-and-release
     env:
       IMAGE_NAME: ghcr.io/space-wizards/ss14.labeller
 
