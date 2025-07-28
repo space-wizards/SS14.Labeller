@@ -11,10 +11,16 @@ permissions:
 
 jobs:
   build-and-release:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
-        platform: [ linux/amd64, linux/arm64 ]
+        include:
+          - platform: linux/amd64
+            rid: linux-x64
+            runner: ubuntu-latest
+          - platform: linux/arm64
+            rid: linux-arm64
+            runner: ubuntu-24.04-arm
     env:
       IMAGE_NAME: ghcr.io/space-wizards/ss14.labeller
     steps:
@@ -30,15 +36,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y clang zlib1g-dev
-
-      - name: Set RID from platform
-        id: setrid
-        run: |
-          case "${{ matrix.platform }}" in
-            linux/amd64) echo "rid=linux-x64" >> $GITHUB_OUTPUT ;;
-            linux/arm64) echo "rid=linux-arm64" >> $GITHUB_OUTPUT ;;
-            *) echo "Unsupported platform"; exit 1 ;;
-          esac
 
       - name: Publish NativeAOT app
         run: |
