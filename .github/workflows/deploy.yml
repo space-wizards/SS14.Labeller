@@ -48,7 +48,7 @@ jobs:
         run: |
           mkdir release
           cp publish/SS14.Labeller release/
-          cp README.md LICENSE.txt release/
+          cp README.md LICENCE.txt release/
           cd release && zip -r ../SS14.Labeller-${{ steps.setrid.outputs.rid }}.zip .
 
       - name: Upload release binary
