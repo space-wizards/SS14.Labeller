@@ -176,12 +176,16 @@ async Task PrHandler(JsonDocument json, HttpClient client)
     var number = pr.GetProperty("number").GetInt32();
     var labels = pr.GetProperty("labels").EnumerateArray().Select(l => l.GetProperty("name").GetString()).ToList();
     var targetBranch = pr.GetProperty("base").GetProperty("ref").GetString();
+    var author = pr.GetProperty("user").GetProperty("login").GetString()!;
 
     // basic labels
     if (action == "opened")
     {
-        if (!labels.Contains("S: Requires Review"))
-            await AddLabel(client, owner, repoName, number, labelStatusRequireReview);
+        async Task ApplyRequiresReviewIfNotAlready()
+        {
+            if (!labels.Contains(labelStatusRequireReview))
+                await AddLabel(client, owner, repoName, number, labelStatusRequireReview);
+        }
 
         if (labels.Count == 0)
             await AddLabel(client, owner, repoName, number, labelStatusUntriaged);
@@ -190,6 +194,23 @@ async Task PrHandler(JsonDocument json, HttpClient client)
             await AddLabel(client, owner, repoName, number, labelBranchStable);
         else if (targetBranch == "staging" && !labels.Contains(labelBranchStaging))
             await AddLabel(client, owner, repoName, number, labelBranchStaging);
+
+        var permRes = await client.GetAsync($"{githubApiBase}/repos/{owner}/{repoName}/collaborators/{author}/permission");
+        if (!permRes.IsSuccessStatusCode)
+        {
+            throw new Exception("Failed to get permissions! Does the github token have enough access?");
+        }
+
+        var permJson = JsonDocument.Parse(await permRes.Content.ReadAsStringAsync());
+        var permission = permJson.RootElement.GetProperty("permission").GetString();
+        if (permission is "write" or "admin")
+        {
+            await AddLabel(client, owner, repoName, number, labelStatusApproved);
+        }
+        else
+        {
+            await ApplyRequiresReviewIfNotAlready();
+        }
     }
 
     var changedFiles = await GetChangedFiles(client, owner, repoName, number);
