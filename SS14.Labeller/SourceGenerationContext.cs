@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 using SS14.Labeller.GitHubApi;
 using SS14.Labeller.Models;
 
@@ -10,4 +11,10 @@ namespace SS14.Labeller;
 [JsonSerializable(typeof(PullRequestReviewEvent))]
 public partial class SourceGenerationContext : JsonSerializerContext
 {
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
+    public static SourceGenerationContext DeserializationContext { get; } = new(JsonSerializerOptions);
 }

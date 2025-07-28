@@ -1,6 +1,16 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35818.85 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SS14.Labeller", "SS14.Labeller\SS14.Labeller.csproj", "{23A01977-7FE4-491F-BBE8-E8C412D8D753}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SS14.Labeller.Tests", "SS14.Labeller.Tests\SS14.Labeller.Tests.csproj", "{E6AD98D5-0330-4056-9042-B8DB3F569B38}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -12,5 +22,15 @@ Global
 		{23A01977-7FE4-491F-BBE8-E8C412D8D753}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23A01977-7FE4-491F-BBE8-E8C412D8D753}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23A01977-7FE4-491F-BBE8-E8C412D8D753}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E6AD98D5-0330-4056-9042-B8DB3F569B38}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E6AD98D5-0330-4056-9042-B8DB3F569B38}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E6AD98D5-0330-4056-9042-B8DB3F569B38}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E6AD98D5-0330-4056-9042-B8DB3F569B38}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A157FDD9-57C3-4411-8594-7999E99B124B}
 	EndGlobalSection
 EndGlobal
