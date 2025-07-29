@@ -13,8 +13,6 @@ public class LabelPullRequestHandler(IGitHubApiClient client) : RequestHandlerBa
     /// <inheritdoc />
     protected override async Task HandleInternal(PullRequestEvent request, CancellationToken ct)
     {
-        // I null-supress the shit out of these because i assume the github webhook json will basically never update and will always return valid data
-
         var pr = request.PullRequest;
 
         var number = pr.Number;
@@ -25,22 +23,22 @@ public class LabelPullRequestHandler(IGitHubApiClient client) : RequestHandlerBa
         // basic labels
         var repository = request.Repository;
 
-        if (request.Action == "opened")
+        if (request.Action is "opened")
         {
             if (labels.Length == 0)
-                await client.AddLabel(repository, number, StatusLabels.Untriaged);
+                await client.AddLabel(repository, number, StatusLabels.Untriaged, ct);
 
             var targetBranch = pr.Base.Ref;
             if (targetBranch == "stable" && !labels.Contains(BranchLabels.Stable))
-                await client.AddLabel(repository, number, BranchLabels.Stable);
+                await client.AddLabel(repository, number, BranchLabels.Stable, ct);
             else if (targetBranch == "staging" && !labels.Contains(BranchLabels.Staging))
-                await client.AddLabel(repository, number, BranchLabels.Staging);
+                await client.AddLabel(repository, number, BranchLabels.Staging, ct);
 
-            var permission = await client.GetPermission(repository, pr.User.Login);
+            var permission = await client.GetPermission(repository, pr.User.Login, ct);
             if (permission is "write" or "admin")
-                await client.AddLabel(repository, number, StatusLabels.Approved);
+                await client.AddLabel(repository, number, StatusLabels.Approved, ct);
             else if (!labels.Contains(StatusLabels.RequireReview))
-                await client.AddLabel(repository, number, StatusLabels.RequireReview);
+                await client.AddLabel(repository, number, StatusLabels.RequireReview, ct);
         }
 
         if (request.Action is "synchronize" or "opened")
@@ -52,51 +50,42 @@ public class LabelPullRequestHandler(IGitHubApiClient client) : RequestHandlerBa
             {
                 if (label?.StartsWith(SizeLabels.Prefix, StringComparison.OrdinalIgnoreCase) == true)
                 {
-                    await client.RemoveLabel(repository, number, label);
+                    await client.RemoveLabel(repository, number, label, ct);
                 }
             }
 
             var sizeLabel = SizeLabels.TryGetLabelFor(totalDiff);
             if (sizeLabel is not null && !labels.Contains(sizeLabel))
             {
-                await client.AddLabel(repository, number, sizeLabel);
+                await client.AddLabel(repository, number, sizeLabel, ct);
             }
         }
 
-        var changedFiles = await client.GetChangedFiles(repository, number);
-
-        var matcher = new Matcher();
-        matcher.AddInclude("**/*.rsi/*.png");            // Sprites
-        matcher.AddInclude("Resources/Maps/**/*.yml");   // Map
-        matcher.AddInclude("Resources/Prototypes/Maps/**/*.yml");
-        matcher.AddInclude("**/*.xaml*");                // UI
-        matcher.AddInclude("**/*.swsl");                 // Shaders
-        matcher.AddInclude("**/*.ogg");                  // Audio
+        var changedFiles = await client.GetChangedFiles(repository, number, ct);
 
         var sprites = new Matcher().AddInclude("**/*.rsi/*.png");
+        if (sprites.Match(changedFiles).HasMatches)
+            await client.AddLabel(repository, number, ChangesLabels.Sprites, ct);
+
         var maps = new Matcher().AddInclude("Resources/Maps/**/*.yml")
                                 .AddInclude("Resources/Prototypes/Maps/**/*.yml");
-        var ui = new Matcher().AddInclude("**/*.xaml*");
-        var shaders = new Matcher().AddInclude("**/*.swsl");
-        var audio = new Matcher().AddInclude("**/*.ogg");
-        var cs = new Matcher().AddInclude("**/*.cs");
-
-        if (sprites.Match(changedFiles).HasMatches)
-            await client.AddLabel(repository, number, ChangesLabels.Sprites);
-
         if (maps.Match(changedFiles).HasMatches)
-            await client.AddLabel(repository, number, ChangesLabels.Map);
+            await client.AddLabel(repository, number, ChangesLabels.Map, ct);
 
+        var ui =      new Matcher().AddInclude("**/*.xaml*");
         if (ui.Match(changedFiles).HasMatches)
-            await client.AddLabel(repository, number, ChangesLabels.Ui);
+            await client.AddLabel(repository, number, ChangesLabels.Ui, ct);
 
+        var shaders = new Matcher().AddInclude("**/*.swsl");
         if (shaders.Match(changedFiles).HasMatches)
-            await client.AddLabel(repository, number, ChangesLabels.Shaders);
+            await client.AddLabel(repository, number, ChangesLabels.Shaders, ct);
 
+        var audio =   new Matcher().AddInclude("**/*.ogg");
         if (audio.Match(changedFiles).HasMatches)
-            await client.AddLabel(repository, number, ChangesLabels.Audio);
+            await client.AddLabel(repository, number, ChangesLabels.Audio, ct);
 
+        var cs = new Matcher().AddInclude("**/*.cs");
         if (!cs.Match(changedFiles).HasMatches)
-            await client.AddLabel(repository, number, ChangesLabels.NoCSharp);
+            await client.AddLabel(repository, number, ChangesLabels.NoCSharp, ct);
     }
 }

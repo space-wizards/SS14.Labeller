@@ -8,21 +8,21 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
 {
     private const string BaseUrl = "https://api.github.com";
 
-    public async Task AddLabel(Repository repo, int number, string label)
+    public async Task AddLabel(Repository repo, int number, string label, CancellationToken ct)
     {
         var request = new AddLabelRequest { labels = [label] };
         var json = JsonSerializer.Serialize(request, SourceGenerationContext.Default.AddLabelRequest);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        await httpClient.PostAsync($"{BaseUrl}/repos/{repo.Owner.Login}/{repo.Name}/issues/{number}/labels", content);
+        await httpClient.PostAsync($"{BaseUrl}/repos/{repo.Owner.Login}/{repo.Name}/issues/{number}/labels", content, ct);
     }
 
-    public async Task RemoveLabel(Repository repo, int number, string label)
+    public async Task RemoveLabel(Repository repo, int number, string label, CancellationToken ct)
     {
-        await httpClient.DeleteAsync($"{BaseUrl}/repos/{repo.Owner.Login}/{repo.Name}/issues/{number}/labels/{Uri.EscapeDataString(label)}");
+        await httpClient.DeleteAsync($"{BaseUrl}/repos/{repo.Owner.Login}/{repo.Name}/issues/{number}/labels/{Uri.EscapeDataString(label)}", ct);
     }
 
-    public async Task<List<string>> GetChangedFiles(Repository repo, int prNumber)
+    public async Task<List<string>> GetChangedFiles(Repository repo, int prNumber, CancellationToken ct)
     {
         // TODO: Ratelimit? Might explode on big PRs???
 
@@ -30,11 +30,11 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
         var page = 1;
         while (true)
         {
-            var res = await httpClient.GetAsync($"{BaseUrl}/repos/{repo.Owner.Login}/{repo.Name}/pulls/{prNumber}/files?per_page=100&page={page}");
+            var res = await httpClient.GetAsync($"{BaseUrl}/repos/{repo.Owner.Login}/{repo.Name}/pulls/{prNumber}/files?per_page=100&page={page}", ct);
             if (!res.IsSuccessStatusCode)
                 break; // TODO: Logging?
 
-            var content = await res.Content.ReadAsStringAsync();
+            var content = await res.Content.ReadAsStringAsync(ct);
             var json = JsonDocument.Parse(content);
             var batch = json.RootElement.EnumerateArray().Select(f => f.GetProperty("filename").GetString()!).ToList();
             if (batch.Count == 0) break;
@@ -48,9 +48,9 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
     }
 
     /// <inheritdoc />
-    public async Task<string?> GetPermission(Repository repo, string? user)
+    public async Task<string?> GetPermission(Repository repo, string? user, CancellationToken ct)
     {
-        var permRes = await httpClient.GetAsync($"{BaseUrl}/repos/{repo.Owner.Login}/{repo.Name}/collaborators/{user}/permission");
+        var permRes = await httpClient.GetAsync($"{BaseUrl}/repos/{repo.Owner.Login}/{repo.Name}/collaborators/{user}/permission", ct);
         if (!permRes.IsSuccessStatusCode)
         {
             throw new Exception("Failed to get permissions! Does the github token have enough access?");

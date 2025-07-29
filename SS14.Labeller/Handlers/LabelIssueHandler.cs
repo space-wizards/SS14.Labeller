@@ -19,7 +19,7 @@ public class LabelIssueHandler(IGitHubApiClient client) : RequestHandlerBase<Iss
             var labels = request.Issue.Labels;
 
             if (labels.Length == 0)
-                await client.AddLabel(request.Repository, number, StatusLabels.Untriaged);
+                await client.AddLabel(request.Repository, number, StatusLabels.Untriaged, ct);
         }
     }
 }
