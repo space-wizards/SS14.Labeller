@@ -87,7 +87,7 @@ public partial class Program
                     );
                 }
 
-                return Results.Ok();
+                return Results.NoContent();
             });
 
         app.Run();

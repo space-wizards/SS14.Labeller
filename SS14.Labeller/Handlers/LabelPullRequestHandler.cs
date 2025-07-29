@@ -18,19 +18,15 @@ public class LabelPullRequestHandler(IGitHubApiClient client) : RequestHandlerBa
         var pr = request.PullRequest;
 
         var number = pr.Number;
-        var labels = pr.Labels.Select(x => x.Name).ToArray();
+        var labels = pr.Labels
+                       .Select(x => x.Name)
+                       .ToArray();
 
         // basic labels
         var repository = request.Repository;
 
         if (request.Action == "opened")
         {
-            async Task ApplyRequiresReviewIfNotAlready()
-            {
-                if (!labels.Contains(StatusLabels.RequireReview))
-                    await client.AddLabel(repository, number, StatusLabels.RequireReview);
-            }
-
             if (labels.Length == 0)
                 await client.AddLabel(repository, number, StatusLabels.Untriaged);
 
@@ -42,13 +38,9 @@ public class LabelPullRequestHandler(IGitHubApiClient client) : RequestHandlerBa
 
             var permission = await client.GetPermission(repository, pr.User.Login);
             if (permission is "write" or "admin")
-            {
                 await client.AddLabel(repository, number, StatusLabels.Approved);
-            }
-            else
-            {
-                await ApplyRequiresReviewIfNotAlready();
-            }
+            else if (!labels.Contains(StatusLabels.RequireReview))
+                await client.AddLabel(repository, number, StatusLabels.RequireReview);
         }
 
         if (request.Action is "synchronize" or "opened")
