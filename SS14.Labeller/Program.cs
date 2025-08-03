@@ -15,7 +15,7 @@ public class Program
 
         if (githubSecret == null || githubToken == null)
         {
-            throw new InvalidOperationException("Missing required GITHUB_SECRET and GITHUB_TOKEN in ENV.");
+            throw new InvalidOperationException("Missing required GITHUB_WEBHOOK_SECRET and GITHUB_TOKEN in ENV.");
         }
 
         var builder = WebApplication.CreateSlimBuilder(args);
@@ -55,9 +55,9 @@ public class Program
         app.MapGet("/", () => Results.Ok("Nik is a cat!"));
 
         app.MapPost(
-            "/webhook", 
+            "/webhook",
             async (
-                HttpContext context, 
+                HttpContext context,
                 [FromHeader(Name = "X-GitHub-Event")] string githubEvent,
                 [FromServices] IReadOnlyDictionary<string, RequestHandlerBase> handlers,
                 [FromServices] ILogger<Program> logger
@@ -73,7 +73,7 @@ public class Program
                 var bodyBytes = memStream.ToArray();
 
                 var headers = request.Headers;
-                if (!SecurityHelper.IsRequestAuthorized(bodyBytes, githubSecret, headers, out var errorResponse)) 
+                if (!SecurityHelper.IsRequestAuthorized(bodyBytes, githubSecret, headers, out var errorResponse))
                     return errorResponse;
 
                 if (handlers.TryGetValue(githubEvent, out var handler))
@@ -83,7 +83,7 @@ public class Program
                 else
                 {
                     logger.LogWarning(
-                        "Unexpected 'X-GitHub-Event' header, cannot handle event of type '{eventType}'.", 
+                        "Unexpected 'X-GitHub-Event' header, cannot handle event of type '{eventType}'.",
                         githubEvent
                     );
                 }
