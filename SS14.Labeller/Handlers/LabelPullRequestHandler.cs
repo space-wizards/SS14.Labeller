@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.FileSystemGlobbing;
 using SS14.Labeller.GitHubApi;
 using SS14.Labeller.Labels;
+using SS14.Labeller.Messages;
 using SS14.Labeller.Models;
 
 namespace SS14.Labeller.Handlers;
@@ -73,6 +74,14 @@ public class LabelPullRequestHandler(IGitHubApiClient client) : RequestHandlerBa
             {
                 await client.AddLabel(repository, number, StatusLabels.RequireReview, ct);
                 await client.RemoveLabel(repository, number, StatusLabels.AwaitingChanges, ct);
+            }
+        }
+
+        if (request.Action is "closed" && !string.IsNullOrEmpty(request.PullRequest.MergedAt))
+        { // PR got merged
+            if (labels.Contains(StatusLabels.Untriaged))
+            {
+                await client.AddComment(repository, number, StatusMessages.UntriagedPullRequestMergedComment, ct);
             }
         }
 
