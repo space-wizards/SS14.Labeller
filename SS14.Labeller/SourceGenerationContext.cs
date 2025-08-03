@@ -6,6 +6,7 @@ using SS14.Labeller.Models;
 namespace SS14.Labeller;
 
 [JsonSerializable(typeof(AddLabelRequest))]
+[JsonSerializable(typeof(AddCommentRequest))]
 [JsonSerializable(typeof(IssuesEvent))]
 [JsonSerializable(typeof(PullRequestEvent))]
 [JsonSerializable(typeof(PullRequestReviewEvent))]

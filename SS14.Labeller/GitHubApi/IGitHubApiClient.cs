@@ -8,4 +8,5 @@ public interface IGitHubApiClient
     Task RemoveLabel(Repository repo, int number, string label, CancellationToken ct);
     Task<List<string>> GetChangedFiles(Repository repo, int prNumber, CancellationToken ct);
     Task<string?> GetPermission(Repository repo, string? user, CancellationToken ct);
+    Task AddComment(Repository repo, int number, string comment, CancellationToken ct);
 }

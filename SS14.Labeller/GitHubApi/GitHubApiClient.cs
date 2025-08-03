@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text;
+using SS14.Labeller.Messages;
 using SS14.Labeller.Models;
 
 namespace SS14.Labeller.GitHubApi;
@@ -58,10 +59,25 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
         var permJson = JsonDocument.Parse(await permRes.Content.ReadAsStringAsync(ct));
         return permJson.RootElement.GetProperty("permission").GetString();
     }
+
+    public async Task AddComment(Repository repo, int number, string comment, CancellationToken ct)
+    {
+        var request = new AddCommentRequest { body = $"{comment}\n\n{StatusMessages.CommentPostfix}" };
+        var json = JsonSerializer.Serialize(request, SourceGenerationContext.Default.AddCommentRequest);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        await httpClient.PostAsync($"{BaseUrl}/repos/{repo.Owner.Login}/{repo.Name}/issues/{number}/comments", content, ct);
+    }
 }
 
 public class AddLabelRequest
 {
     // ReSharper disable once InconsistentNaming
     public string[] labels { get; set; } = [];
+}
+
+public class AddCommentRequest
+{
+    // ReSharper disable once InconsistentNaming
+    public string body { get; set; } = string.Empty;
 }
