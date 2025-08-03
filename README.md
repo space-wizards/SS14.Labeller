@@ -11,7 +11,7 @@ To set the port, use the `ASPNETCORE_URLS` environment variable, e.g. `ASPNETCOR
 To build the application, use the following command:
 
 ```bash
-dotnet publish -c Release -r <platform ex. win-x64> --self-contained true /p:PublishAot=true
+dotnet publish ./SS14.Labeller -c Release -r <platform ex. win-x64> --self-contained true /p:PublishAot=true
 ```
 
 Running the application is just like any other executable. On Unix systems, you may need to set the executable bit on the binary.
@@ -23,43 +23,44 @@ The token must have the `Issues` and `Pull requests` scopes enabled for read and
 
 ## Testing and debug
 
-You will need set up proxy for messages from github to your local machine. For that you can use https://smee.io
-You can use 'Use the CLI' version of proxy:
-1. Install smee cli using npm (if you dont have it - follow those instructions here https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
+You will need set up proxy for messages from GitHub to your local machine. For that you can use https://smee.io
+1. Install Smee cli using npm (if you don't have it - follow those instructions [here](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm))\
 ``` npm install --global smee-client ```
-2. visit https://smee.io, click 'Start a new channel' and copy link that will be generated on top.
-3. In console use smee cli to start proxy forwarding to your local machine```smee -u https://smee.io/{place-you-channel-code-here} -P //webhook```
+2. Visit https://smee.io, click 'Start a new channel' and copy the link that will be generated.
+3. In your console use Smee cli to start proxy forwarding to your local machine\
+```smee -u https://smee.io/{place-you-channel-code-here} -t http://127.0.0.1:5000/webhook```
 
-Upon launching it will output line like
+Upon launching, it will output line like
 ```
-Forwarding https://smee.io/5999VPv39Kc69sxj to http://127.0.0.1:3000/webhooks
+Forwarding https://smee.io/{place-you-channel-code-here} to http://127.0.0.1:5000/webhook
 ```
 That means that every message it receives, including
-* its payload
-* its headers
+* Its payload
+* Its headers
 
-will be proxied to http://127.0.0.1:3000/webhooks, so you need to configure your debug launch to use that port. To do that you can set launchSettings.json to following:
+will be proxied to `http://127.0.0.1:5000/webhooks`.
+
+The labeller should already automatically start on port 5000, but if it doesn't you can use this launchProfile.json
 ```
 {
   "profiles": {
     "SS14.Labeller": {
       "commandName": "Project",
-      "launchBrowser": true,
+      "launchBrowser": false,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "http://localhost:3000"
+      "applicationUrl": "http://localhost:5000"
     }
   }
 }
 ```
 
-Now we need set up repository. Create new repository or use existing one. 
-1. Go to 'Settings' tab of repository, then to 'Webhooks' (https://github.com/{owner}/{repository}/settings/hooks)
-2. click 'Add webhook' option
-3. Input url that smee.io gave your on previous step (should look like https://smee.io/5999VPv39Kc69sxj) into Payload URL
-4. select content-type ```application/json```
-5. Input secret word into Secret
-6. In block 'which events would you like to trigger this webhook' select 'Let me select individual events' and check only event types you need to debug (currently supported are Issue/Pull Request/ Pull Request Review)
-7. Set env variables GITHUB_WEBHOOK_SECRET using secret you passed in step 5, and GITHUB_TOKEN using PAT token for interaction (can be created in profile https://github.com/settings/personal-access-tokens)
-Now you are all set up to try and create issure/ PR and get some events debugging!
+Now we need set up the repository. Create new repository or use an existing one. 
+1. Go to the 'Settings' tab of repository, then to 'Webhooks' (`https://github.com/{owner}/{repository}/settings/hooks`)
+2. Click 'Add webhook'
+3. Copy your smee.io url into Payload URL field
+4. Select content-type ```application/json```
+5. Input any "secret" word or phrase into the Secret field.
+6. In the block 'Which events would you like to trigger this webhook?' select 'Let me select individual events' and check the events as listed in the Usage section.
+7. Set the ENV variables GITHUB_WEBHOOK_SECRET using secret you chose in step 5, and GITHUB_TOKEN using a [PAT token](https://github.com/settings/personal-access-tokens). The token must have the required permissions set, refer to the Usage section for those.
