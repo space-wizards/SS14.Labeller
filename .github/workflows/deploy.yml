@@ -66,6 +66,13 @@ jobs:
     needs: build-and-release
     env:
       IMAGE_NAME: ghcr.io/space-wizards/ss14.labeller
+    strategy:
+      matrix:
+        include:
+          - platform: linux/amd64
+            rid: linux-x64
+          - platform: linux/arm64
+            rid: linux-arm64
 
     steps:
       - name: Checkout repository
@@ -94,7 +101,9 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ matrix.platform }}
           tags: |
             ${{ env.IMAGE_NAME }}:latest
             ${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+          build-args: |
+            RID=${{ matrix.rid }}
