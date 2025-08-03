@@ -39,7 +39,7 @@ jobs:
 
       - name: Publish NativeAOT app
         run: |
-          dotnet publish -c Release -r ${{ matrix.rid }} --self-contained true /p:PublishAot=true -o publish
+          dotnet publish ./SS14.Labeller -c Release -r ${{ matrix.rid }} --self-contained true /p:PublishAot=true -o publish
 
       - name: Prepare release zip
         run: |
