@@ -58,7 +58,7 @@ jobs:
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ss14-labeller-${{ matrix.rid }}
+          name: ${{ matrix.rid }}
           path: release/
 
   docker-publish:
