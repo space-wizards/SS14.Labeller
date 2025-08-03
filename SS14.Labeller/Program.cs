@@ -80,13 +80,6 @@ public class Program
                 {
                     await handler.Handle(bodyBytes, context.RequestAborted);
                 }
-                else
-                {
-                    logger.LogWarning(
-                        "Unexpected 'X-GitHub-Event' header, cannot handle event of type '{eventType}'.",
-                        githubEvent
-                    );
-                }
 
                 return Results.NoContent();
             });
