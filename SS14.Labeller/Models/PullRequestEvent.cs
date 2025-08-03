@@ -6,6 +6,12 @@ public class PullRequestEvent : EventBase
 {
     [JsonPropertyName("pull_request")]
     public required PullRequest PullRequest { get; set; }
+
+    /// <summary>
+    /// The requested reviewer if the action was "review_requested".
+    /// </summary>
+    [JsonPropertyName("requested_reviewer")]
+    public User? RequestedReviewer { get; set; }
 }
 
 public class PullRequest

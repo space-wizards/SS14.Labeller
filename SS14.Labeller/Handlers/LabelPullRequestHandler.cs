@@ -37,8 +37,8 @@ public class LabelPullRequestHandler(IGitHubApiClient client) : RequestHandlerBa
             var permission = await client.GetPermission(repository, pr.User.Login, ct);
             if (permission is "write" or "admin")
                 await client.AddLabel(repository, number, StatusLabels.Approved, ct);
-            else if (!labels.Contains(StatusLabels.RequireReview))
-                await client.AddLabel(repository, number, StatusLabels.RequireReview, ct);
+
+            await client.AddLabel(repository, number, StatusLabels.RequireReview, ct);
         }
 
         if (request.Action is "synchronize" or "opened")
@@ -58,6 +58,18 @@ public class LabelPullRequestHandler(IGitHubApiClient client) : RequestHandlerBa
             if (sizeLabel is not null && !labels.Contains(sizeLabel))
             {
                 await client.AddLabel(repository, number, sizeLabel, ct);
+            }
+        }
+
+        if (request.Action is "review_requested")
+        {
+            // ReSharper disable once NullableWarningSuppressionIsUsed - Asssuming review_requested, there should always be a requested reviewer.
+            var requestedPermission = await client.GetPermission(repository, request.RequestedReviewer!.Login, ct);
+
+            if (labels.Contains(StatusLabels.AwaitingChanges))
+            {
+                await client.AddLabel(repository, number, StatusLabels.RequireReview, ct);
+                await client.RemoveLabel(repository, number, StatusLabels.AwaitingChanges, ct);
             }
         }
 

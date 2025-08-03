@@ -33,15 +33,17 @@ public class LabelPullRequestReviewHandler(IGitHubApiClient client)
         var permission = await client.GetPermission(repo, user, ct);
         if (permission is "write" or "admin")
         {
-            await client.RemoveLabel(repo, number, StatusLabels.RequireReview, ct);
-
 #pragma warning disable CS8509 // The switch expression does not handle all possible values of its input type (it is not exhaustive).
             await (state switch
             {
                 "approved"
                     => client.AddLabel(repo, number, StatusLabels.Approved, ct),
-                "changes_requested"
-                    => client.AddLabel(repo, number, StatusLabels.AwaitingChanges, ct)
+                "changes_requested" =>
+                    Task.WhenAll(
+                        // We remove the Needs Review label, later down the line when a review is re-requested, we will apply this label again.
+                        client.RemoveLabel(repo, number, StatusLabels.RequireReview, ct),
+                        client.AddLabel(repo, number, StatusLabels.AwaitingChanges, ct)
+                        )
             });
 #pragma warning restore CS8509 // The switch expression does not handle all possible values of its input type (it is not exhaustive).
 

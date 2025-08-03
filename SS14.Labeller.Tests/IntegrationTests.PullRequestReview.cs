@@ -77,15 +77,6 @@ public partial class IntegrationTests
                                      StatusLabels.Approved,
                                      Arg.Any<CancellationToken>()
                                  );
-
-        await _applicationFactory.GitHubApiClient
-                                 .Received()
-                                 .RemoveLabel(
-                                     Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
-                                     4,
-                                     StatusLabels.RequireReview,
-                                     Arg.Any<CancellationToken>()
-                                 );
     }
 
     [Test]
