@@ -86,21 +86,41 @@ public class LabelPullRequestHandler(IGitHubApiClient client) : RequestHandlerBa
                                 .AddInclude("Resources/Prototypes/Maps/**/*.yml");
         if (maps.Match(changedFiles).HasMatches)
             await client.AddLabel(repository, number, ChangesLabels.Map, ct);
+        else
+            await RemoveLabelIfApplied(ChangesLabels.Map);
 
         var ui =      new Matcher().AddInclude("**/*.xaml*");
         if (ui.Match(changedFiles).HasMatches)
             await client.AddLabel(repository, number, ChangesLabels.Ui, ct);
+        else
+            await RemoveLabelIfApplied(ChangesLabels.Ui);
 
         var shaders = new Matcher().AddInclude("**/*.swsl");
         if (shaders.Match(changedFiles).HasMatches)
             await client.AddLabel(repository, number, ChangesLabels.Shaders, ct);
+        else
+            await RemoveLabelIfApplied(ChangesLabels.Shaders);
 
         var audio =   new Matcher().AddInclude("**/*.ogg");
         if (audio.Match(changedFiles).HasMatches)
             await client.AddLabel(repository, number, ChangesLabels.Audio, ct);
+        else
+            await RemoveLabelIfApplied(ChangesLabels.Audio);
 
         var cs = new Matcher().AddInclude("**/*.cs");
         if (!cs.Match(changedFiles).HasMatches)
             await client.AddLabel(repository, number, ChangesLabels.NoCSharp, ct);
+        else
+            await RemoveLabelIfApplied(ChangesLabels.NoCSharp);
+
+        return;
+
+        async Task RemoveLabelIfApplied(string label)
+        {
+            if (!labels.Contains(label))
+                return;
+
+            await client.RemoveLabel(repository, number, label, ct);
+        }
     }
 }
