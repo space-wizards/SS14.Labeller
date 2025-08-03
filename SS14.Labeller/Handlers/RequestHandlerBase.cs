@@ -6,10 +6,14 @@ namespace SS14.Labeller.Handlers;
 
 public abstract class RequestHandlerBase
 {
-
-
+    /// <summary>
+    /// Github-declared type of event this handler should process.
+    /// </summary>
     public abstract string EventType { get; }
 
+    /// <summary> Process event. </summary>
+    /// <param name="bodyBytes">bytes of request body.</param>
+    /// <param name="ct">Operation cancellation token.</param>
     public abstract Task Handle(byte[] bodyBytes, CancellationToken ct);
 }
 
@@ -30,5 +34,6 @@ public abstract class RequestHandlerBase<T> : RequestHandlerBase where T : Event
 
     }
 
+    /// <summary> Process provided event. </summary>
     protected abstract Task HandleInternal(T request, CancellationToken ct);
 }

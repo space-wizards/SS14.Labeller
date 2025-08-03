@@ -35,14 +35,14 @@ public partial class IntegrationTests
             $"Invalid response status - {result.StatusCode}, response text: \r\n{respText}."
         );
 
-        _applicationFactory.GitHubApiClient
-                           .DidNotReceive()
-                           .AddLabel(
-                               Arg.Any<Repository>(),
-                               Arg.Any<int>(),
-                               Arg.Any<string>(),
-                               Arg.Any<CancellationToken>()
-                           );
+        await _applicationFactory.GitHubApiClient
+                                 .DidNotReceive()
+                                 .AddLabel(
+                                     Arg.Any<Repository>(),
+                                     Arg.Any<int>(),
+                                     Arg.Any<string>(),
+                                     Arg.Any<CancellationToken>()
+                                 );
     }
 
     [Test]
@@ -69,23 +69,23 @@ public partial class IntegrationTests
             $"Invalid response status - {result.StatusCode}, response text: \r\n{respText}."
         );
 
-        _applicationFactory.GitHubApiClient
-                           .Received()
-                           .AddLabel(
-                               Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
-                               4,
-                               StatusLabels.Approved,
-                               Arg.Any<CancellationToken>()
-                           );
+        await _applicationFactory.GitHubApiClient
+                                 .Received()
+                                 .AddLabel(
+                                     Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+                                     4,
+                                     StatusLabels.Approved,
+                                     Arg.Any<CancellationToken>()
+                                 );
 
-        _applicationFactory.GitHubApiClient
-                           .Received()
-                           .RemoveLabel(
-                               Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
-                               4,
-                               StatusLabels.RequireReview,
-                               Arg.Any<CancellationToken>()
-                           );
+        await _applicationFactory.GitHubApiClient
+                                 .Received()
+                                 .RemoveLabel(
+                                     Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+                                     4,
+                                     StatusLabels.RequireReview,
+                                     Arg.Any<CancellationToken>()
+                                 );
     }
 
     [Test]
@@ -112,23 +112,23 @@ public partial class IntegrationTests
             $"Invalid response status - {result.StatusCode}, response text: \r\n{respText}."
         );
 
-        _applicationFactory.GitHubApiClient
-                           .Received()
-                           .AddLabel(
-                               Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
-                               4,
-                               StatusLabels.AwaitingChanges,
-                               Arg.Any<CancellationToken>()
-                           );
+        await _applicationFactory.GitHubApiClient
+                                 .Received()
+                                 .AddLabel(
+                                     Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+                                     4,
+                                     StatusLabels.AwaitingChanges,
+                                     Arg.Any<CancellationToken>()
+                                 );
 
-        _applicationFactory.GitHubApiClient
-                           .Received()
-                           .RemoveLabel(
-                               Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
-                               4,
-                               StatusLabels.RequireReview,
-                               Arg.Any<CancellationToken>()
-                           );
+        await _applicationFactory.GitHubApiClient
+                                 .Received()
+                                 .RemoveLabel(
+                                     Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+                                     4,
+                                     StatusLabels.RequireReview,
+                                     Arg.Any<CancellationToken>()
+                                 );
     }
 
     [Test]
@@ -155,23 +155,23 @@ public partial class IntegrationTests
             $"Invalid response status - {result.StatusCode}, response text: \r\n{respText}."
         );
 
-        _applicationFactory.GitHubApiClient
-                           .DidNotReceive()
-                           .AddLabel(
-                               Arg.Any<Repository>(),
-                               Arg.Any<int>(),
-                               Arg.Any<string>(),
-                               Arg.Any<CancellationToken>()
-                           );
+        await _applicationFactory.GitHubApiClient
+                                 .DidNotReceive()
+                                 .AddLabel(
+                                     Arg.Any<Repository>(),
+                                     Arg.Any<int>(),
+                                     Arg.Any<string>(),
+                                     Arg.Any<CancellationToken>()
+                                 );
 
-        _applicationFactory.GitHubApiClient
-                           .DidNotReceive()
-                           .RemoveLabel(
-                               Arg.Any<Repository>(),
-                               Arg.Any<int>(),
-                               Arg.Any<string>(),
-                               Arg.Any<CancellationToken>()
-                           );
+        await _applicationFactory.GitHubApiClient
+                                 .DidNotReceive()
+                                 .RemoveLabel(
+                                     Arg.Any<Repository>(),
+                                     Arg.Any<int>(),
+                                     Arg.Any<string>(),
+                                     Arg.Any<CancellationToken>()
+                                 );
     }
 
     [Test]
@@ -198,22 +198,22 @@ public partial class IntegrationTests
             $"Invalid response status - {result.StatusCode}, response text: \r\n{respText}."
         );
 
-        _applicationFactory.GitHubApiClient
-                           .DidNotReceive()
-                           .AddLabel(
-                               Arg.Any<Repository>(),
-                               Arg.Any<int>(),
-                               Arg.Any<string>(),
-                               Arg.Any<CancellationToken>()
-                           );
+        await _applicationFactory.GitHubApiClient
+                                 .DidNotReceive()
+                                 .AddLabel(
+                                     Arg.Any<Repository>(),
+                                     Arg.Any<int>(),
+                                     Arg.Any<string>(),
+                                     Arg.Any<CancellationToken>()
+                                 );
 
-        _applicationFactory.GitHubApiClient
-                           .DidNotReceive()
-                           .RemoveLabel(
-                               Arg.Any<Repository>(),
-                               Arg.Any<int>(),
-                               Arg.Any<string>(),
-                               Arg.Any<CancellationToken>()
-                           );
+        await _applicationFactory.GitHubApiClient
+                                 .DidNotReceive()
+                                 .RemoveLabel(
+                                     Arg.Any<Repository>(),
+                                     Arg.Any<int>(),
+                                     Arg.Any<string>(),
+                                     Arg.Any<CancellationToken>()
+                                 );
     }
 }

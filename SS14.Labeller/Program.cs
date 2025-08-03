@@ -1,11 +1,12 @@
 using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Mvc;
-using SS14.Labeller;
 using SS14.Labeller.GitHubApi;
 using SS14.Labeller.Handlers;
 using SS14.Labeller.Helpers;
 
-public partial class Program
+namespace SS14.Labeller;
+
+public class Program
 {
     public static void Main(string[] args)
     {

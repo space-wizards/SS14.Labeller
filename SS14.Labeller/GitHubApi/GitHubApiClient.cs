@@ -55,7 +55,7 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
         {
             throw new Exception("Failed to get permissions! Does the github token have enough access?");
         }
-        var permJson = JsonDocument.Parse(await permRes.Content.ReadAsStringAsync());
+        var permJson = JsonDocument.Parse(await permRes.Content.ReadAsStringAsync(ct));
         return permJson.RootElement.GetProperty("permission").GetString();
     }
 }

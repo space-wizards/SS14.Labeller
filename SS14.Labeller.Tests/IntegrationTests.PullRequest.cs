@@ -40,14 +40,14 @@ public partial class IntegrationTests
         await _client.PostAsync("/webhook", requestContent);
 
         // Assert
-        _applicationFactory.GitHubApiClient
-                           .Received()
-                           .AddLabel(
-                               Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
-                               4,
-                               BranchLabels.Staging,
-                               Arg.Any<CancellationToken>()
-                           );
+        await _applicationFactory.GitHubApiClient
+                                 .Received()
+                                 .AddLabel(
+                                     Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+                                     4,
+                                     BranchLabels.Staging,
+                                     Arg.Any<CancellationToken>()
+                                 );
     }
     
     [Test]
@@ -61,14 +61,14 @@ public partial class IntegrationTests
         await _client.PostAsync("/webhook", requestContent);
 
         // Assert
-        _applicationFactory.GitHubApiClient
-                           .Received()
-                           .AddLabel(
-                               Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
-                               4,
-                               BranchLabels.Stable,
-                               Arg.Any<CancellationToken>()
-                           );
+        await _applicationFactory.GitHubApiClient
+                                 .Received()
+                                 .AddLabel(
+                                     Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+                                     4,
+                                     BranchLabels.Stable,
+                                     Arg.Any<CancellationToken>()
+                                 );
     }
     
     [Test]
@@ -82,22 +82,22 @@ public partial class IntegrationTests
         await _client.PostAsync("/webhook", requestContent);
 
         // Assert
-        _applicationFactory.GitHubApiClient
-                           .DidNotReceive()
-                           .AddLabel(
-                               Arg.Any<Repository>(),
-                               Arg.Any<int>(),
-                               BranchLabels.Stable,
-                               Arg.Any<CancellationToken>()
-                           );
-        _applicationFactory.GitHubApiClient
-                           .DidNotReceive()
-                           .AddLabel(
-                               Arg.Any<Repository>(),
-                               Arg.Any<int>(),
-                               BranchLabels.Staging,
-                               Arg.Any<CancellationToken>()
-                           );
+        await _applicationFactory.GitHubApiClient
+                                 .DidNotReceive()
+                                 .AddLabel(
+                                     Arg.Any<Repository>(),
+                                     Arg.Any<int>(),
+                                     BranchLabels.Stable,
+                                     Arg.Any<CancellationToken>()
+                                 );
+        await _applicationFactory.GitHubApiClient
+                                 .DidNotReceive()
+                                 .AddLabel(
+                                     Arg.Any<Repository>(),
+                                     Arg.Any<int>(),
+                                     BranchLabels.Staging,
+                                     Arg.Any<CancellationToken>()
+                                 );
     }
 
     [Test]
@@ -122,14 +122,14 @@ public partial class IntegrationTests
         await _client.PostAsync("/webhook", requestContent);
 
         // Assert
-        _applicationFactory.GitHubApiClient
-                           .Received()
-                           .AddLabel(
-                               Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
-                               4,
-                               StatusLabels.Approved,
-                               Arg.Any<CancellationToken>()
-                           );
+        await _applicationFactory.GitHubApiClient
+                                 .Received()
+                                 .AddLabel(
+                                     Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+                                     4,
+                                     StatusLabels.Approved,
+                                     Arg.Any<CancellationToken>()
+                                 );
     }
 
     [Test]
@@ -154,14 +154,14 @@ public partial class IntegrationTests
         await _client.PostAsync("/webhook", requestContent);
 
         // Assert
-        _applicationFactory.GitHubApiClient
-                           .Received()
-                           .AddLabel(
-                               Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
-                               4,
-                               StatusLabels.RequireReview,
-                               Arg.Any<CancellationToken>()
-                           );
+        await _applicationFactory.GitHubApiClient
+                                 .Received()
+                                 .AddLabel(
+                                     Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+                                     4,
+                                     StatusLabels.RequireReview,
+                                     Arg.Any<CancellationToken>()
+                                 );
     }
 
     [Test]
@@ -181,23 +181,23 @@ public partial class IntegrationTests
         var result = await _client.PostAsync("/webhook", requestContent);
 
         // Assert
-        _applicationFactory.GitHubApiClient
-                           .Received()
-                           .AddLabel(
-                               Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
-                               4,
-                               "size/L",
-                               Arg.Any<CancellationToken>()
-                           );
+        await _applicationFactory.GitHubApiClient
+                                 .Received()
+                                 .AddLabel(
+                                     Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+                                     4,
+                                     "size/L",
+                                     Arg.Any<CancellationToken>()
+                                 );
 
-        _applicationFactory.GitHubApiClient
-                           .Received()
-                           .RemoveLabel(
-                               Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
-                               4,
-                               "size/S",
-                               Arg.Any<CancellationToken>()
-                           );
+        await _applicationFactory.GitHubApiClient
+                                 .Received()
+                                 .RemoveLabel(
+                                     Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+                                     4,
+                                     "size/S",
+                                     Arg.Any<CancellationToken>()
+                                 );
     }
 
     [Test]
@@ -217,41 +217,41 @@ public partial class IntegrationTests
         var result = await _client.PostAsync("/webhook", requestContent);
 
         // Assert
-        _applicationFactory.GitHubApiClient
-                           .Received()
-                           .AddLabel(
-                               Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
-                               4,
-                               ChangesLabels.Sprites,
-                               Arg.Any<CancellationToken>()
-                           );
+        await _applicationFactory.GitHubApiClient
+                                 .Received()
+                                 .AddLabel(
+                                     Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+                                     4,
+                                     ChangesLabels.Sprites,
+                                     Arg.Any<CancellationToken>()
+                                 );
 
-        _applicationFactory.GitHubApiClient
-                           .Received()
-                           .AddLabel(
-                               Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
-                               4,
-                               ChangesLabels.Audio,
-                               Arg.Any<CancellationToken>()
-                           );
+        await _applicationFactory.GitHubApiClient
+                                 .Received()
+                                 .AddLabel(
+                                     Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+                                     4,
+                                     ChangesLabels.Audio,
+                                     Arg.Any<CancellationToken>()
+                                 );
 
-        _applicationFactory.GitHubApiClient
-                           .DidNotReceive()
-                           .AddLabel(
-                               Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
-                               4,
-                               ChangesLabels.NoCSharp,
-                               Arg.Any<CancellationToken>()
-                           );
+        await _applicationFactory.GitHubApiClient
+                                 .DidNotReceive()
+                                 .AddLabel(
+                                     Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+                                     4,
+                                     ChangesLabels.NoCSharp,
+                                     Arg.Any<CancellationToken>()
+                                 );
 
-        _applicationFactory.GitHubApiClient
-                           .DidNotReceive()
-                           .RemoveLabel(
-                               Arg.Any<Repository>(),
-                               Arg.Any<int>(),
-                               Arg.Any<string>(),
-                               Arg.Any<CancellationToken>()
-                           );
+        await _applicationFactory.GitHubApiClient
+                                 .DidNotReceive()
+                                 .RemoveLabel(
+                                     Arg.Any<Repository>(),
+                                     Arg.Any<int>(),
+                                     Arg.Any<string>(),
+                                     Arg.Any<CancellationToken>()
+                                 );
     }
 
     [Test]
@@ -271,22 +271,22 @@ public partial class IntegrationTests
         var result = await _client.PostAsync("/webhook", requestContent);
 
         // Assert
-        _applicationFactory.GitHubApiClient
-                           .Received()
-                           .AddLabel(
-                               Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
-                               4,
-                               ChangesLabels.NoCSharp,
-                               Arg.Any<CancellationToken>()
-                           );
+        await _applicationFactory.GitHubApiClient
+                                 .Received()
+                                 .AddLabel(
+                                     Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+                                     4,
+                                     ChangesLabels.NoCSharp,
+                                     Arg.Any<CancellationToken>()
+                                 );
 
-        _applicationFactory.GitHubApiClient
-                           .DidNotReceive()
-                           .RemoveLabel(
-                               Arg.Any<Repository>(),
-                               Arg.Any<int>(),
-                               Arg.Any<string>(),
-                               Arg.Any<CancellationToken>()
-                           );
+        await _applicationFactory.GitHubApiClient
+                                 .DidNotReceive()
+                                 .RemoveLabel(
+                                     Arg.Any<Repository>(),
+                                     Arg.Any<int>(),
+                                     Arg.Any<string>(),
+                                     Arg.Any<CancellationToken>()
+                                 );
     }
 }

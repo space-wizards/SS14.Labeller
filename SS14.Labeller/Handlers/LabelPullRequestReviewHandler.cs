@@ -24,8 +24,8 @@ public class LabelPullRequestReviewHandler(IGitHubApiClient client)
 
         // Ignore reviews if PR is closed or merged
         // "closed" means closed or merged, but let's also check for merged explicitly if available
-        bool isClosed = request.Review.State == "closed";
-        bool isMerged = pr.MergedAt != null;
+        var isClosed = request.Review.State == "closed";
+        var isMerged = pr.MergedAt != null;
         if (isClosed || isMerged)
             return;
 
@@ -35,6 +35,7 @@ public class LabelPullRequestReviewHandler(IGitHubApiClient client)
         {
             await client.RemoveLabel(repo, number, StatusLabels.RequireReview, ct);
 
+#pragma warning disable CS8509 // The switch expression does not handle all possible values of its input type (it is not exhaustive).
             await (state switch
             {
                 "approved"
@@ -42,6 +43,8 @@ public class LabelPullRequestReviewHandler(IGitHubApiClient client)
                 "changes_requested"
                     => client.AddLabel(repo, number, StatusLabels.AwaitingChanges, ct)
             });
+#pragma warning restore CS8509 // The switch expression does not handle all possible values of its input type (it is not exhaustive).
+
         }
     }
 }

@@ -2,9 +2,7 @@ namespace SS14.Labeller.Labels;
 
 public static class SizeLabels
 {
-    public const string Prefix = "size/";
-
-    static IReadOnlyDictionary<int, string> sizes = new Dictionary<int, string>()
+    private static readonly IReadOnlyDictionary<int, string> Sizes = new Dictionary<int, string>()
     {
         { 0, Prefix + "XS" },
         { 10, Prefix + "S" },
@@ -13,11 +11,13 @@ public static class SizeLabels
         { 5000, Prefix + "XL" },
     };
 
+    public const string Prefix = "size/";
+
     public static string? TryGetLabelFor(int totalDiff)
     {
         string? sizeLabel = null;
         // ReSharper disable once LoopCanBeConvertedToQuery no fuck you, the resulting LINQ query is unreadable
-        foreach (var kvp in sizes.OrderByDescending(k => k.Key))
+        foreach (var kvp in Sizes.OrderByDescending(k => k.Key))
         {
             if (totalDiff < kvp.Key)
                 continue;

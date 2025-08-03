@@ -13,5 +13,6 @@ public class PullRequestReviewEvent : EventBase
 public class Review
 {
     public required User User { get; set; }
+
     public required string State { get; set; }
 }

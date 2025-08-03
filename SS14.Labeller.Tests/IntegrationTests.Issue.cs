@@ -28,14 +28,14 @@ public partial class IntegrationTests
             $"Invalid response status - {result.StatusCode}, response text: \r\n{respText}."
         );
 
-        _applicationFactory.GitHubApiClient
-                           .Received()
-                           .AddLabel(
-                               Arg.Is<Repository>(x => x.Name == "Kaizen" && x.Owner.Login == "Fildrance"),
-                               31,
-                               StatusLabels.Untriaged,
-                               Arg.Any<CancellationToken>()
-                           );
+        await _applicationFactory.GitHubApiClient
+                                 .Received()
+                                 .AddLabel(
+                                     Arg.Is<Repository>(x => x.Name == "Kaizen" && x.Owner.Login == "Fildrance"),
+                                     31,
+                                     StatusLabels.Untriaged,
+                                     Arg.Any<CancellationToken>()
+                                 );
     }
     [Test]
     public async Task Issue_Closed_NoLabelsAssigned()
@@ -55,13 +55,13 @@ public partial class IntegrationTests
             $"Invalid response status - {result.StatusCode}, response text: \r\n{respText}."
         );
 
-        _applicationFactory.GitHubApiClient
-                           .DidNotReceive()
-                           .AddLabel(
-                               Arg.Any<Repository>(),
-                               Arg.Any<int>(),
-                               Arg.Any<string>(),
-                               Arg.Any<CancellationToken>()
-                           );
+        await _applicationFactory.GitHubApiClient
+                                 .DidNotReceive()
+                                 .AddLabel(
+                                     Arg.Any<Repository>(),
+                                     Arg.Any<int>(),
+                                     Arg.Any<string>(),
+                                     Arg.Any<CancellationToken>()
+                                 );
     }
 }
