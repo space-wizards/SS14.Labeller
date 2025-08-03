@@ -44,17 +44,20 @@ public class LabelPullRequestHandler(IGitHubApiClient client) : RequestHandlerBa
         if (request.Action is "synchronize" or "opened")
         {
             var totalDiff = pr.Additions + pr.Deletions;
+            var sizeLabel = SizeLabels.TryGetLabelFor(totalDiff);
 
             // remove the existing size/* labels
             foreach (var label in labels)
             {
+                if (label == sizeLabel)
+                    continue; // Don't remove a label that is accurate
+
                 if (label?.StartsWith(SizeLabels.Prefix, StringComparison.OrdinalIgnoreCase) == true)
                 {
                     await client.RemoveLabel(repository, number, label, ct);
                 }
             }
 
-            var sizeLabel = SizeLabels.TryGetLabelFor(totalDiff);
             if (sizeLabel is not null && !labels.Contains(sizeLabel))
             {
                 await client.AddLabel(repository, number, sizeLabel, ct);
