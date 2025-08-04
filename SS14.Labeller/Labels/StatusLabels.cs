@@ -8,4 +8,5 @@ public static class StatusLabels
     public const string RequireReview = Prefix + "Needs Review"; // no idea why its called this
     public const string AwaitingChanges = Prefix + "Awaiting Changes";
     public const string Approved = Prefix + "Approved";
+    public const string UndergoingDiscussion = Prefix + "Undergoing Discussion";
 }

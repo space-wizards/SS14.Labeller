@@ -12,6 +12,12 @@ public class PullRequestEvent : EventBase
     /// </summary>
     [JsonPropertyName("requested_reviewer")]
     public User? RequestedReviewer { get; set; }
+
+    /// <summary>
+    /// The applied label if the action was "labeled" (or also "unlabeled").
+    /// </summary>
+    [JsonPropertyName("label")]
+    public Label? Label { get; set; }
 }
 
 public class PullRequest
@@ -30,6 +36,10 @@ public class PullRequest
 
     [JsonPropertyName("merged_at")]
     public string? MergedAt { get; set; }
+
+    public required string Title { get; set; }
+    [JsonPropertyName("html_url")]
+    public required string Url { get; set; }
 }
 
 public class BranchInfo

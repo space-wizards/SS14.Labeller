@@ -26,6 +26,7 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
     public async Task<List<string>> GetChangedFiles(Repository repo, int prNumber, CancellationToken ct)
     {
         // TODO: Ratelimit? Might explode on big PRs???
+        // TODO: Update to use ParseNextPageUrl
 
         var files = new List<string>();
         var page = 1;
@@ -67,6 +68,57 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         await httpClient.PostAsync($"{BaseUrl}/repos/{repo.Owner.Login}/{repo.Name}/issues/{number}/comments", content, ct);
+    }
+
+    public async Task<List<IssueComment>> GetComments(Repository repo, int prNumber, CancellationToken ct)
+    {
+        var allComments = new List<IssueComment>();
+        var url = $"{BaseUrl}/repos/{repo.Owner.Login}/{repo.Name}/issues/{prNumber}/comments?per_page=100";
+
+        while (true)
+        {
+            var res = await httpClient.GetAsync(url, ct);
+            if (!res.IsSuccessStatusCode)
+                break; // TODO: Logging?
+
+            var json = await res.Content.ReadAsStringAsync(ct);
+            var comments = (IssueComment[])JsonSerializer.Deserialize(json, typeof(IssueComment[]), SourceGenerationContext.DeserializationContext)!;
+            allComments.AddRange(comments);
+
+            if (res.Headers.TryGetValues("Link", out var linkHeaders))
+            {
+                var links = linkHeaders.FirstOrDefault();
+                url = ParseNextPageUrl(links);
+            }
+            else
+                break;
+        }
+
+
+        return allComments;
+    }
+
+    private static string? ParseNextPageUrl(string? linkHeader)
+    {
+        if (string.IsNullOrEmpty(linkHeader))
+            return null;
+
+        var links = linkHeader.Split(',');
+        // ReSharper disable once LoopCanBeConvertedToQuery - no.
+        foreach (var link in links)
+        {
+            var parts = link.Split(';');
+            if (parts.Length < 2)
+                continue;
+
+            var urlPart = parts[0].Trim().Trim('<', '>');
+            var relPart = parts[1].Trim();
+
+            if (relPart.Equals("rel=\"next\"", StringComparison.OrdinalIgnoreCase))
+                return urlPart;
+        }
+
+        return null;
     }
 }
 

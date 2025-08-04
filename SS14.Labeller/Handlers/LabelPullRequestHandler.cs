@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.FileSystemGlobbing;
+using SS14.Labeller.DiscourseApi;
 using SS14.Labeller.GitHubApi;
 using SS14.Labeller.Labels;
 using SS14.Labeller.Messages;
@@ -6,7 +7,7 @@ using SS14.Labeller.Models;
 
 namespace SS14.Labeller.Handlers;
 
-public class LabelPullRequestHandler(IGitHubApiClient client) : RequestHandlerBase<PullRequestEvent>
+public class LabelPullRequestHandler(IGitHubApiClient client, IDiscourseClient discourseClient) : RequestHandlerBase<PullRequestEvent>
 {
     /// <inheritdoc />
     public override string EventType => "pull_request";
@@ -62,6 +63,33 @@ public class LabelPullRequestHandler(IGitHubApiClient client) : RequestHandlerBa
             if (sizeLabel is not null && !labels.Contains(sizeLabel))
             {
                 await client.AddLabel(repository, number, sizeLabel, ct);
+            }
+        }
+
+        if (request.Action is "labeled")
+        {
+            // ReSharper disable once NullableWarningSuppressionIsUsed
+            if (request.Label!.Name == StatusLabels.UndergoingDiscussion)
+            {
+                // We are making a discussion, yipee!
+
+                // we get all comments to see if we already have made a discussion thread before
+                var comments = await client.GetComments(repository, number, ct);
+
+                if (!comments.Any(x => x.Body.StartsWith(StatusMessages.StartedDiscussion)))
+                {
+                    // we need to make a new thread!
+                    var topic = await discourseClient.CreateTopic(
+                        int.Parse(Environment.GetEnvironmentVariable("DISCOURSE_DISCUSSION_CATEGORY")!),
+                        StatusMessages.DiscourseTopicBody
+                            .Replace("{link}", request.PullRequest.Url),
+                        request.PullRequest.Title,
+                        ct);
+
+                    var topicLink = Environment.GetEnvironmentVariable("DISCOURSE_CLIENT_URL")! + topic[1..];
+
+                    await client.AddComment(repository, number, StatusMessages.StartedDiscussion + topicLink, ct);
+                }
             }
         }
 

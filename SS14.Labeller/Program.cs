@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Mvc;
+using SS14.Labeller.DiscourseApi;
 using SS14.Labeller.GitHubApi;
 using SS14.Labeller.Handlers;
 using SS14.Labeller.Helpers;
@@ -12,10 +13,19 @@ public class Program
     {
         var githubSecret = Environment.GetEnvironmentVariable("GITHUB_WEBHOOK_SECRET");
         var githubToken = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
+        var discourseApiKey = Environment.GetEnvironmentVariable("DISCOURSE_CLIENT_API_KEY");
+        var discourseApiUsername = Environment.GetEnvironmentVariable("DISCOURSE_CLIENT_USERNAME");
+        var discourseMaintainerCategory = Environment.GetEnvironmentVariable("DISCOURSE_DISCUSSION_CATEGORY");
+        var discourseUrl = Environment.GetEnvironmentVariable("DISCOURSE_CLIENT_URL");
 
-        if (githubSecret == null || githubToken == null)
+        if (discourseUrl == null || githubSecret == null || githubToken == null || discourseApiKey == null || discourseApiUsername == null || discourseMaintainerCategory == null)
         {
-            throw new InvalidOperationException("Missing required GITHUB_WEBHOOK_SECRET and GITHUB_TOKEN in ENV.");
+            throw new InvalidOperationException("Missing required GITHUB_WEBHOOK_SECRET, GITHUB_TOKEN, DISCOURSE_CLIENT_API_KEY, DISCOURSE_CLIENT_USERNAME, DISCOURSE_DISCUSSION_CATEGORY or DISCOURSE_CLIENT_URL in ENV.");
+        }
+
+        if (!int.TryParse(discourseMaintainerCategory, out _))
+        {
+            throw new InvalidOperationException("DISCOURSE_DISCUSSION_CATEGORY must be a number");
         }
 
         var builder = WebApplication.CreateSlimBuilder(args);
@@ -37,6 +47,13 @@ public class Program
             client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SS14.Labeller", "1.0"));
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", githubToken);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
+        });
+        builder.Services.AddHttpClient<IDiscourseClient, DiscourseClient>(client =>
+        {
+            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SS14.Labeller", "1.0"));
+            client.DefaultRequestHeaders.Add("Api-Key", discourseApiKey);
+            client.DefaultRequestHeaders.Add("Api-Username", discourseApiUsername);
+            client.BaseAddress = new Uri(discourseUrl);
         });
 
         builder.Services.AddSingleton<RequestHandlerBase, LabelIssueHandler>();

@@ -9,4 +9,5 @@ public interface IGitHubApiClient
     Task<List<string>> GetChangedFiles(Repository repo, int prNumber, CancellationToken ct);
     Task<string?> GetPermission(Repository repo, string? user, CancellationToken ct);
     Task AddComment(Repository repo, int number, string comment, CancellationToken ct);
+    Task<List<IssueComment>> GetComments(Repository repo, int prNumber, CancellationToken ct);
 }
