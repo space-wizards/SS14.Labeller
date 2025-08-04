@@ -23,6 +23,10 @@ public partial class IntegrationTests
     {
         Environment.SetEnvironmentVariable("GITHUB_WEBHOOK_SECRET", HookSecret);
         Environment.SetEnvironmentVariable("GITHUB_TOKEN", "DUMMY");
+        Environment.SetEnvironmentVariable("DISCOURSE_CLIENT_API_KEY", "DUMMY");
+        Environment.SetEnvironmentVariable("DISCOURSE_CLIENT_USERNAME", "DUMMY");
+        Environment.SetEnvironmentVariable("DISCOURSE_DISCUSSION_CATEGORY", "0");
+        Environment.SetEnvironmentVariable("DISCOURSE_CLIENT_URL", "https://example.com/");
 
 
         _applicationFactory = new CustomWebApplicationFactory();
