@@ -70,7 +70,7 @@ public class LabelPullRequestHandler(IGitHubApiClient client) : RequestHandlerBa
             // ReSharper disable once NullableWarningSuppressionIsUsed - Asssuming review_requested, there should always be a requested reviewer.
             var requestedPermission = await client.GetPermission(repository, request.RequestedReviewer!.Login, ct);
 
-            if (labels.Contains(StatusLabels.AwaitingChanges))
+            if (labels.Contains(StatusLabels.AwaitingChanges) && requestedPermission is "write" or "admin")
             {
                 await client.AddLabel(repository, number, StatusLabels.RequireReview, ct);
                 await client.RemoveLabel(repository, number, StatusLabels.AwaitingChanges, ct);
