@@ -1,9 +1,7 @@
 using System.Net.Http.Headers;
-using System.Runtime;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using SS14.Labeller.Configuration;
-using SS14.Labeller.Configuration.Validators;
 using SS14.Labeller.DiscourseApi;
 using SS14.Labeller.GitHubApi;
 using SS14.Labeller.Handlers;
