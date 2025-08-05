@@ -12,7 +12,7 @@ namespace SS14.Labeller.Tests;
 [ExcludeFromCodeCoverage]
 public partial class IntegrationTests
 {
-    private const string HookSecret = "asdasdasdasdasdasdasdadsadad";
+    public const string HookSecret = "asdasdasdasdasdasdasdadsadad";
 
     private CustomWebApplicationFactory _applicationFactory;
 
@@ -21,14 +21,6 @@ public partial class IntegrationTests
     [SetUp]
     public void Setup()
     {
-        Environment.SetEnvironmentVariable("GITHUB_WEBHOOK_SECRET", HookSecret);
-        Environment.SetEnvironmentVariable("GITHUB_TOKEN", "DUMMY");
-        Environment.SetEnvironmentVariable("DISCOURSE_CLIENT_API_KEY", "DUMMY");
-        Environment.SetEnvironmentVariable("DISCOURSE_CLIENT_USERNAME", "DUMMY");
-        Environment.SetEnvironmentVariable("DISCOURSE_DISCUSSION_CATEGORY", "0");
-        Environment.SetEnvironmentVariable("DISCOURSE_CLIENT_URL", "https://example.com/");
-
-
         _applicationFactory = new CustomWebApplicationFactory();
         _client = _applicationFactory.CreateClient();
     }
