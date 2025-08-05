@@ -82,7 +82,7 @@ public class LabelPullRequestHandler : RequestHandlerBase<PullRequestEvent>
         if (request.Action is "labeled")
         {
             // ReSharper disable once NullableWarningSuppressionIsUsed
-            if (request.Label!.Name == StatusLabels.UndergoingDiscussion)
+            if (request.Label!.Name == StatusLabels.UndergoingDiscussion && _discourseConfig.Enable)
             {
                 // We are making a discussion, yipee!
 

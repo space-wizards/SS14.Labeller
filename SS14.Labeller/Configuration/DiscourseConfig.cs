@@ -6,6 +6,8 @@ public class DiscourseConfig
 {
     public const string Name = "Discourse";
 
+    public bool Enable { get; set; } = false;
+
     [Required]
     public string ApiKey { get; set; } = string.Empty;
     [Required]

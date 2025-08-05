@@ -4,6 +4,7 @@
     "Token": "github_pat_AAAA"
   },
   "Discourse": {
+    "Enable": false,
     "ApiKey": "---",
     "Username": "---",
     "DiscussionCategoryId": 0,
