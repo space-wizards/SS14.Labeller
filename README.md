@@ -27,14 +27,14 @@ To set the port, use the `ASPNETCORE_URLS` environment variable, e.g. `ASPNETCOR
 ### Config File Reference
 
 #### GitHub
-*WebhookSecret*: The secret you set for your webhook.
+*WebhookSecret*: The secret you set for your webhook.\
 *Token*: A GitHub PAT token.
 
 #### Discourse
-*Enable*: Whether to enable the discourse integration. If false, you can leave the rest unset.
-*ApiKey*: An API key for Discourse. Follow [these](https://meta.discourse.org/t/create-and-configure-an-api-key/230124) docs for how to get one.
-*Username*: The username to use for Discourse.
-*DiscussionCategoryId*: What category to send new discussion Topics in. You can get this by opening the Topic in your browser and the number in the URL is the category ID.
+*Enable*: Whether to enable the discourse integration. If false, you can leave the rest unset.\
+*ApiKey*: An API key for Discourse. Follow [these](https://meta.discourse.org/t/create-and-configure-an-api-key/230124) docs for how to get one.\
+*Username*: The username to use for Discourse.\
+*DiscussionCategoryId*: What category to send new discussion Topics in. You can get this by opening the Topic in your browser and the number in the URL is the category ID.\
 *Url*: The Forum URL. Must end with a trailing slash.
 
 ## Building
