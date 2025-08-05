@@ -1,0 +1,12 @@
+{
+  "GitHub": {
+    "WebhookSecret": "mysecret",
+    "Token": "github_pat_AAAA"
+  },
+  "Discourse": {
+    "ApiKey": "---",
+    "Username": "---",
+    "DiscussionCategoryId": 0,
+    "Url": "https://forum.example.com/"
+  }
+}

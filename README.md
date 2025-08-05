@@ -4,9 +4,25 @@ Simple ASP.NET NativeAOT application for labelling our [content repository](http
 
 ## Usage
 
-Set the GITHUB_WEBHOOK_SECRET and GITHUB_TOKEN environment variables to your GitHub webhook secret and token respectively.
+Create the a file called appsettings.json like so:
+```json
+{
+  "GitHub": {
+    "WebhookSecret": "mysecret",
+    "Token": "github_pat_AAAA"
+  },
+  "Discourse": {
+    "ApiKey": "---",
+    "Username": "---",
+    "DiscussionCategoryId": 0,
+    "Url": "https://forum.example.com/"
+  }
+}
+```
+All of these values must be set for the application to function.
 
 To set the port, use the `ASPNETCORE_URLS` environment variable, e.g. `ASPNETCORE_URLS=http://localhost:5000`.
+
 
 To build the application, use the following command:
 
@@ -63,4 +79,3 @@ Now we need set up the repository. Create new repository or use an existing one.
 4. Select content-type ```application/json```
 5. Input any "secret" word or phrase into the Secret field.
 6. In the block 'Which events would you like to trigger this webhook?' select 'Let me select individual events' and check the events as listed in the Usage section.
-7. Set the ENV variables GITHUB_WEBHOOK_SECRET using secret you chose in step 5, and GITHUB_TOKEN using a [PAT token](https://github.com/settings/personal-access-tokens). The token must have the required permissions set, refer to the Usage section for those.
