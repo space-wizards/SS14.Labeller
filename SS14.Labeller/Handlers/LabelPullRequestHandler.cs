@@ -106,20 +106,23 @@ public class LabelPullRequestHandler(
                         request.PullRequest.Title,
                         ct);
 
-                    var topicLink = _discourseConfig.Url + topic[1..];
+                    var topicLink = _discourseConfig.Url + topic.PostUrl[1..];
 
                     await client.AddComment(repository, number, StatusMessages.StartedDiscussion + topicLink, ct);
 
                     const string insert = """
-                                              INSERT INTO Discussions (RepoOwner, RepoName, IssueNumber)
-                                              VALUES (@Owner, @Name, @Number);
+                                              INSERT INTO Discussions (RepoOwner, RepoName, IssueNumber, TopicId)
+                                              VALUES (@Owner, @Name, @Number, @TopicId);
                                           """;
+
+                    await discourseClient.ApplyTags(topic.TopicId, ct, _discourseConfig.Tagging.PrOpenTag);
 
                     await connection.ExecuteAsync(insert, new
                     {
                         Owner = request.Repository.Owner.Login,
                         Name = request.Repository.Name,
-                        Number = request.PullRequest.Number
+                        Number = request.PullRequest.Number,
+                        TopicId = topic.TopicId
                     });
                 }
             }
@@ -139,9 +142,30 @@ public class LabelPullRequestHandler(
 
         if (request.Action is "closed" && !string.IsNullOrEmpty(request.PullRequest.MergedAt))
         { // PR got merged
+            var discussion =
+                await dataManager.GetTopicIdForDiscussion(request.Repository.Owner.Login, request.Repository.Name,
+                    number);
+
+            if (discussion is not null)
+            {
+                // we have an active discussion, lets mark it as doneso
+                await discourseClient.ApplyTags(discussion.Value, ct, _discourseConfig.Tagging.PrMergedTag);
+            }
+
             if (labels.Contains(StatusLabels.Untriaged))
             {
                 await client.AddComment(repository, number, StatusMessages.UntriagedPullRequestMergedComment, ct);
+            }
+        } else if (request.Action is "closed")
+        {
+            // pr was just closed, not merged.
+            var discussion =
+                await dataManager.GetTopicIdForDiscussion(request.Repository.Owner.Login, request.Repository.Name,
+                    number);
+
+            if (discussion is not null)
+            {
+                await discourseClient.ApplyTags(discussion.Value, ct, _discourseConfig.Tagging.PrClosedTag);
             }
         }
 

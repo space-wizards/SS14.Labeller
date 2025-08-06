@@ -16,4 +16,13 @@ public class DiscourseConfig
     public int DiscussionCategoryId { get; set; }
     [Required]
     public string Url { get; set; } = string.Empty;
+
+    public DiscourseTagConfig Tagging { get; set; } = new DiscourseTagConfig();
+}
+
+public class DiscourseTagConfig
+{
+    public string PrOpenTag { get; set; } = "pr-open";
+    public string PrClosedTag { get; set; } = "pr-closed";
+    public string PrMergedTag { get; set; } = "pr-merged";
 }

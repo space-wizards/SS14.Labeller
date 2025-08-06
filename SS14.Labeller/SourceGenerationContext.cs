@@ -11,10 +11,12 @@ namespace SS14.Labeller;
 [JsonSerializable(typeof(IssuesEvent))]
 [JsonSerializable(typeof(PullRequestEvent))]
 [JsonSerializable(typeof(PullRequestReviewEvent))]
-[JsonSerializable(typeof(DiscoursePost))]
+[JsonSerializable(typeof(DiscourseCreatedPost))]
 [JsonSerializable(typeof(CreatePostRequest))]
 [JsonSerializable(typeof(IssueComment))]
 [JsonSerializable(typeof(IssueComment[]))]
+[JsonSerializable(typeof(UpdatePostRequest))]
+[JsonSerializable(typeof(DiscoursePost))]
 public partial class SourceGenerationContext : JsonSerializerContext
 {
     private static readonly JsonSerializerOptions JsonSerializerOptions = new()

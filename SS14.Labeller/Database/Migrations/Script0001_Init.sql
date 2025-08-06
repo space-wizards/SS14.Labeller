@@ -2,7 +2,8 @@
     DiscussionId INTEGER PRIMARY KEY,
     RepoOwner TEXT NOT NULL,
     RepoName TEXT NOT NULL,
-    IssueNumber INTEGER NOT NULL
+    IssueNumber INTEGER NOT NULL,
+    TopicId INTEGER NOT NULL
 );
 
 CREATE INDEX Discussions_Owner ON Discussions(RepoOwner);
