@@ -5,3 +5,4 @@ riderModule.iml
 /_ReSharper.Caches/
 /.vs/**
 appsettings.json
+/SS14.Labeller/Application.db

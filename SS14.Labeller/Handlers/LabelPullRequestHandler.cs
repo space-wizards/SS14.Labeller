@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.FileSystemGlobbing;
+﻿using Dapper;
+using Microsoft.Extensions.FileSystemGlobbing;
 using Microsoft.Extensions.Options;
 using SS14.Labeller.Configuration;
+using SS14.Labeller.Database;
 using SS14.Labeller.DiscourseApi;
 using SS14.Labeller.GitHubApi;
 using SS14.Labeller.Labels;
@@ -10,9 +12,10 @@ using SS14.Labeller.Models;
 namespace SS14.Labeller.Handlers;
 
 public class LabelPullRequestHandler(
-    IGitHubApiClient client, 
-    IDiscourseClient discourseClient, 
-    IOptions<DiscourseConfig> config
+    IGitHubApiClient client,
+    IDiscourseClient discourseClient,
+    IOptions<DiscourseConfig> config,
+    DataManager dataManager
 ) : RequestHandlerBase<PullRequestEvent>
 {
     private readonly DiscourseConfig _discourseConfig = config.Value;
@@ -80,15 +83,24 @@ public class LabelPullRequestHandler(
             if (request.Label!.Name == StatusLabels.UndergoingDiscussion && _discourseConfig.Enable)
             {
                 // We are making a discussion, yipee!
+                await using var connection = dataManager.OpenConnection();
+                const string sql = """
+                                       SELECT 1 FROM Discussions
+                                       WHERE RepoOwner = @Owner AND RepoName = @Name AND IssueNumber = @Number
+                                       LIMIT 1;
+                                   """;
 
-                // we get all comments to see if we already have made a discussion thread before
-                var comments = await client.GetComments(repository, number, ct);
-
-                if (!comments.Any(x => x.Body.StartsWith(StatusMessages.StartedDiscussion)))
+                var exists = await connection.ExecuteScalarAsync<int?>(sql, new
                 {
-                    // we need to make a new thread!
+                    Owner = request.Repository.Owner.Login,
+                    Name = request.Repository.Name,
+                    Number = request.PullRequest.Number
+                });
+
+                if (exists is null)
+                { // need to make a new discussion.
                     var topic = await discourseClient.CreateTopic(
-                            _discourseConfig.DiscussionCategoryId,
+                        _discourseConfig.DiscussionCategoryId,
                         StatusMessages.DiscourseTopicBody
                             .Replace("{link}", request.PullRequest.Url),
                         request.PullRequest.Title,
@@ -97,6 +109,18 @@ public class LabelPullRequestHandler(
                     var topicLink = _discourseConfig.Url + topic[1..];
 
                     await client.AddComment(repository, number, StatusMessages.StartedDiscussion + topicLink, ct);
+
+                    const string insert = """
+                                              INSERT INTO Discussions (RepoOwner, RepoName, IssueNumber)
+                                              VALUES (@Owner, @Name, @Number);
+                                          """;
+
+                    await connection.ExecuteAsync(insert, new
+                    {
+                        Owner = request.Repository.Owner.Login,
+                        Name = request.Repository.Name,
+                        Number = request.PullRequest.Number
+                    });
                 }
             }
         }

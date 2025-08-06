@@ -6,9 +6,18 @@
         <InvariantGlobalization>true</InvariantGlobalization>
         <PublishAot>true</PublishAot>
         <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
+        <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Dapper.AOT</InterceptorsPreviewNamespaces>
     </PropertyGroup>
+
+
+    <ItemGroup>
+        <EmbeddedResource Include="Database\Migrations\Script0001_Init.sql" />
+    </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="9.0.6" />
+      <PackageReference Include="Dapper" Version="2.1.66" />
+      <PackageReference Include="Dapper.AOT" Version="1.0.48" />
+      <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.8" />
     </ItemGroup>
 </Project>

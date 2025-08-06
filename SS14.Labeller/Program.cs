@@ -1,11 +1,15 @@
 using System.Net.Http.Headers;
+using Dapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using SS14.Labeller.Configuration;
+using SS14.Labeller.Database;
 using SS14.Labeller.DiscourseApi;
 using SS14.Labeller.GitHubApi;
 using SS14.Labeller.Handlers;
 using SS14.Labeller.Helpers;
+
+[module:DapperAot]
 
 namespace SS14.Labeller;
 
@@ -58,6 +62,9 @@ public class Program
         builder.Services.AddSingleton<RequestHandlerBase, LabelIssueHandler>();
         builder.Services.AddSingleton<RequestHandlerBase, LabelPullRequestReviewHandler>();
         builder.Services.AddSingleton<RequestHandlerBase, LabelPullRequestHandler>();
+
+        builder.Services.AddSingleton<DataManager>();
+        builder.Services.AddHostedService(p => p.GetRequiredService<DataManager>());
 
         builder.Services.AddSingleton<IReadOnlyDictionary<string, RequestHandlerBase>>(
             sp => sp.GetServices<RequestHandlerBase>()

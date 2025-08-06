@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   ss14-labeller:
     image: ghcr.io/space-wizards/ss14.labeller:latest
@@ -11,3 +9,4 @@ services:
       ASPNETCORE_URLS: http://+:5000
     volumes:
       - ./appsettings.json:/app/appsettings.json
+      - ./Application.db:/app/Application.db
