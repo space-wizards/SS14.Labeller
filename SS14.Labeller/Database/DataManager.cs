@@ -3,7 +3,7 @@ using Microsoft.Data.Sqlite;
 
 namespace SS14.Labeller.Database;
 
-public sealed class DataManager(ILogger<DataManager> logger) : IHostedService
+public sealed class DataManager(ILogger<DataManager> logger, IConfiguration configuration) : IHostedService
 {
     public SqliteConnection OpenConnection()
     {
@@ -32,7 +32,7 @@ public sealed class DataManager(ILogger<DataManager> logger) : IHostedService
 
     private string GetConnectionString()
     {
-        return "Data Source=Application.db";
+        return configuration.GetConnectionString("Default") ?? "Data Source=Application.db";
     }
 
     Task IHostedService.StartAsync(CancellationToken cancellationToken)

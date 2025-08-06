@@ -4,5 +4,6 @@ obj/
 riderModule.iml
 /_ReSharper.Caches/
 /.vs/**
-appsettings.json
+appsettings.Secret.json
 /SS14.Labeller/Application.db
+/SS14.Labeller/data/**

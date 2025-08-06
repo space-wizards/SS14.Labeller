@@ -19,6 +19,7 @@ public class Program
     {
         var builder = WebApplication.CreateSlimBuilder(args);
         builder.Configuration.AddJsonFile("appsettings.json", true, true);
+        builder.Configuration.AddJsonFile("appsettings.Secret.json", true, true);
         builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", true, true);
 
         builder.Services.AddOptions<DiscourseConfig>()

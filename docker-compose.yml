@@ -9,4 +9,4 @@ services:
       ASPNETCORE_URLS: http://+:5000
     volumes:
       - ./appsettings.json:/app/appsettings.json
-      - ./Application.db:/app/Application.db
+      - ./data:/app/data
