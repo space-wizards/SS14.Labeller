@@ -49,15 +49,30 @@ public class Program
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", githubConfig.Token);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
         });
-        builder.Services.AddHttpClient<IDiscourseClient, DiscourseClient>((sp, client) =>
-        {
-            var discourseConfig = sp.GetRequiredService<IOptions<DiscourseConfig>>().Value;
 
-            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SS14.Labeller", "1.0"));
-            client.DefaultRequestHeaders.Add("Api-Key", discourseConfig.ApiKey);
-            client.DefaultRequestHeaders.Add("Api-Username", discourseConfig.Username);
-            client.BaseAddress = new Uri(discourseConfig.Url);
-        });
+        {
+            var discourseStartupConfig = new DiscourseConfig();
+            builder.Configuration.Bind(DiscourseConfig.Name, discourseStartupConfig);
+
+            if (discourseStartupConfig.Enable)
+            {
+                builder.Services.AddHttpClient<IDiscourseClient, DiscourseClient>((sp, client) =>
+                {
+                    var discourseConfig = sp.GetRequiredService<IOptions<DiscourseConfig>>().Value;
+
+                    client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SS14.Labeller", "1.0"));
+                    client.DefaultRequestHeaders.Add("Api-Key", discourseConfig.ApiKey);
+                    client.DefaultRequestHeaders.Add("Api-Username", discourseConfig.Username);
+                    client.BaseAddress = new Uri(discourseConfig.Url);
+                });
+            }
+            else
+            {
+                builder.Services.AddHttpClient<IDiscourseClient, DummyDiscourseClient>();
+            }
+        }
+
+
 
         builder.Services.AddSingleton<RequestHandlerBase, LabelIssueHandler>();
         builder.Services.AddSingleton<RequestHandlerBase, LabelPullRequestReviewHandler>();
