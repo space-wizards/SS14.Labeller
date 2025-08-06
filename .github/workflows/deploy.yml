@@ -44,7 +44,7 @@ jobs:
       - name: Prepare release zip
         run: |
           mkdir release
-          cp publish/ release/
+          cp publish/* release/
           cp README.md LICENCE.txt release/
           cp appsettings.json.example release/appsettings.json
           cd release && zip -r ../SS14.Labeller-${{ matrix.rid }}.zip .
