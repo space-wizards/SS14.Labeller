@@ -19,7 +19,7 @@ public partial class IntegrationTests
         var requestContent = await CreateRequestContent(fileName, "pull_request_review");
 
         _applicationFactory.GitHubApiClient.GetPermission(
-            Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+            Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
             "NonFildrance",
             Arg.Any<CancellationToken>()
         ).Returns(Task.FromResult("user"));
@@ -38,7 +38,7 @@ public partial class IntegrationTests
         await _applicationFactory.GitHubApiClient
                                  .DidNotReceive()
                                  .AddLabel(
-                                     Arg.Any<Repository>(),
+                                     Arg.Any<GithubRepo>(),
                                      Arg.Any<int>(),
                                      Arg.Any<string>(),
                                      Arg.Any<CancellationToken>()
@@ -53,7 +53,7 @@ public partial class IntegrationTests
         var requestContent = await CreateRequestContent(fileName, "pull_request_review");
 
         _applicationFactory.GitHubApiClient.GetPermission(
-            Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+            Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
             "Fildrance",
             Arg.Any<CancellationToken>()
         ).Returns(Task.FromResult("write"));
@@ -72,7 +72,7 @@ public partial class IntegrationTests
         await _applicationFactory.GitHubApiClient
                                  .Received()
                                  .AddLabel(
-                                     Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+                                     Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
                                      4,
                                      StatusLabels.Approved,
                                      Arg.Any<CancellationToken>()
@@ -87,7 +87,7 @@ public partial class IntegrationTests
         var requestContent = await CreateRequestContent(fileName, "pull_request_review");
 
         _applicationFactory.GitHubApiClient.GetPermission(
-            Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+            Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
             "Fildrance",
             Arg.Any<CancellationToken>()
         ).Returns(Task.FromResult("write"));
@@ -106,7 +106,7 @@ public partial class IntegrationTests
         await _applicationFactory.GitHubApiClient
                                  .Received()
                                  .AddLabel(
-                                     Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+                                     Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
                                      4,
                                      StatusLabels.AwaitingChanges,
                                      Arg.Any<CancellationToken>()
@@ -115,7 +115,7 @@ public partial class IntegrationTests
         await _applicationFactory.GitHubApiClient
                                  .Received()
                                  .RemoveLabel(
-                                     Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+                                     Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
                                      4,
                                      StatusLabels.RequireReview,
                                      Arg.Any<CancellationToken>()
@@ -130,7 +130,7 @@ public partial class IntegrationTests
         var requestContent = await CreateRequestContent(fileName, "pull_request_review");
 
         _applicationFactory.GitHubApiClient.GetPermission(
-            Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+            Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
             "Fildrance",
             Arg.Any<CancellationToken>()
         ).Returns(Task.FromResult("write"));
@@ -149,7 +149,7 @@ public partial class IntegrationTests
         await _applicationFactory.GitHubApiClient
                                  .DidNotReceive()
                                  .AddLabel(
-                                     Arg.Any<Repository>(),
+                                     Arg.Any<GithubRepo>(),
                                      Arg.Any<int>(),
                                      Arg.Any<string>(),
                                      Arg.Any<CancellationToken>()
@@ -158,7 +158,7 @@ public partial class IntegrationTests
         await _applicationFactory.GitHubApiClient
                                  .DidNotReceive()
                                  .RemoveLabel(
-                                     Arg.Any<Repository>(),
+                                     Arg.Any<GithubRepo>(),
                                      Arg.Any<int>(),
                                      Arg.Any<string>(),
                                      Arg.Any<CancellationToken>()
@@ -173,7 +173,7 @@ public partial class IntegrationTests
         var requestContent = await CreateRequestContent(fileName, "pull_request_review");
 
         _applicationFactory.GitHubApiClient.GetPermission(
-            Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+            Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
             "Fildrance",
             Arg.Any<CancellationToken>()
         ).Returns(Task.FromResult("write"));
@@ -192,7 +192,7 @@ public partial class IntegrationTests
         await _applicationFactory.GitHubApiClient
                                  .DidNotReceive()
                                  .AddLabel(
-                                     Arg.Any<Repository>(),
+                                     Arg.Any<GithubRepo>(),
                                      Arg.Any<int>(),
                                      Arg.Any<string>(),
                                      Arg.Any<CancellationToken>()
@@ -201,7 +201,7 @@ public partial class IntegrationTests
         await _applicationFactory.GitHubApiClient
                                  .DidNotReceive()
                                  .RemoveLabel(
-                                     Arg.Any<Repository>(),
+                                     Arg.Any<GithubRepo>(),
                                      Arg.Any<int>(),
                                      Arg.Any<string>(),
                                      Arg.Any<CancellationToken>()

@@ -43,7 +43,7 @@ public partial class IntegrationTests
         await _applicationFactory.GitHubApiClient
                                  .Received()
                                  .AddLabel(
-                                     Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+                                     Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
                                      4,
                                      BranchLabels.Staging,
                                      Arg.Any<CancellationToken>()
@@ -64,7 +64,7 @@ public partial class IntegrationTests
         await _applicationFactory.GitHubApiClient
                                  .Received()
                                  .AddLabel(
-                                     Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+                                     Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
                                      4,
                                      BranchLabels.Stable,
                                      Arg.Any<CancellationToken>()
@@ -85,7 +85,7 @@ public partial class IntegrationTests
         await _applicationFactory.GitHubApiClient
                                  .DidNotReceive()
                                  .AddLabel(
-                                     Arg.Any<Repository>(),
+                                     Arg.Any<GithubRepo>(),
                                      Arg.Any<int>(),
                                      BranchLabels.Stable,
                                      Arg.Any<CancellationToken>()
@@ -93,7 +93,7 @@ public partial class IntegrationTests
         await _applicationFactory.GitHubApiClient
                                  .DidNotReceive()
                                  .AddLabel(
-                                     Arg.Any<Repository>(),
+                                     Arg.Any<GithubRepo>(),
                                      Arg.Any<int>(),
                                      BranchLabels.Staging,
                                      Arg.Any<CancellationToken>()
@@ -108,12 +108,12 @@ public partial class IntegrationTests
         var requestContent = await CreateRequestContent(fileName, "pull_request");
 
         _applicationFactory.GitHubApiClient.GetChangedFiles(
-            Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+            Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
             4,
             Arg.Any<CancellationToken>()
         ).Returns(["LootSystem.cs", "Loot.png",]);
         _applicationFactory.GitHubApiClient.GetPermission(
-            Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+            Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
             "Fildrance",
             Arg.Any<CancellationToken>()
         ).Returns(Task.FromResult("write"));
@@ -125,7 +125,7 @@ public partial class IntegrationTests
         await _applicationFactory.GitHubApiClient
                                  .Received()
                                  .AddLabel(
-                                     Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+                                     Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
                                      4,
                                      StatusLabels.Approved,
                                      Arg.Any<CancellationToken>()
@@ -140,12 +140,12 @@ public partial class IntegrationTests
         var requestContent = await CreateRequestContent(fileName, "pull_request");
 
         _applicationFactory.GitHubApiClient.GetChangedFiles(
-            Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+            Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
             4,
             Arg.Any<CancellationToken>()
         ).Returns(["LootSystem.cs", "Loot.png",]);
         _applicationFactory.GitHubApiClient.GetPermission(
-            Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+            Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
             "Fildrance",
             Arg.Any<CancellationToken>()
         ).Returns(Task.FromResult("read"));
@@ -157,7 +157,7 @@ public partial class IntegrationTests
         await _applicationFactory.GitHubApiClient
                                  .Received()
                                  .AddLabel(
-                                     Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+                                     Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
                                      4,
                                      StatusLabels.RequireReview,
                                      Arg.Any<CancellationToken>()
@@ -172,7 +172,7 @@ public partial class IntegrationTests
         var requestContent = await CreateRequestContent(fileName, "pull_request");
 
         _applicationFactory.GitHubApiClient.GetChangedFiles(
-            Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+            Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
             4,
             Arg.Any<CancellationToken>()
         ).Returns(["LootSystem.cs", "Loot.png",]);
@@ -184,7 +184,7 @@ public partial class IntegrationTests
         await _applicationFactory.GitHubApiClient
                                  .Received()
                                  .AddLabel(
-                                     Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+                                     Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
                                      4,
                                      "size/L",
                                      Arg.Any<CancellationToken>()
@@ -193,7 +193,7 @@ public partial class IntegrationTests
         await _applicationFactory.GitHubApiClient
                                  .Received()
                                  .RemoveLabel(
-                                     Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+                                     Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
                                      4,
                                      "size/S",
                                      Arg.Any<CancellationToken>()
@@ -208,7 +208,7 @@ public partial class IntegrationTests
         var requestContent = await CreateRequestContent(fileName, "pull_request");
 
         _applicationFactory.GitHubApiClient.GetChangedFiles(
-            Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+            Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
             4,
             Arg.Any<CancellationToken>()
         ).Returns(["LootSystem.cs", "MyLoots.rsi/Loot.png", "PickLoot.ogg"]);
@@ -220,7 +220,7 @@ public partial class IntegrationTests
         await _applicationFactory.GitHubApiClient
                                  .Received()
                                  .AddLabel(
-                                     Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+                                     Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
                                      4,
                                      ChangesLabels.Sprites,
                                      Arg.Any<CancellationToken>()
@@ -229,7 +229,7 @@ public partial class IntegrationTests
         await _applicationFactory.GitHubApiClient
                                  .Received()
                                  .AddLabel(
-                                     Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+                                     Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
                                      4,
                                      ChangesLabels.Audio,
                                      Arg.Any<CancellationToken>()
@@ -238,7 +238,7 @@ public partial class IntegrationTests
         await _applicationFactory.GitHubApiClient
                                  .DidNotReceive()
                                  .AddLabel(
-                                     Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+                                     Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
                                      4,
                                      ChangesLabels.NoCSharp,
                                      Arg.Any<CancellationToken>()
@@ -247,7 +247,7 @@ public partial class IntegrationTests
         await _applicationFactory.GitHubApiClient
                                  .DidNotReceive()
                                  .RemoveLabel(
-                                     Arg.Any<Repository>(),
+                                     Arg.Any<GithubRepo>(),
                                      Arg.Any<int>(),
                                      Arg.Any<string>(),
                                      Arg.Any<CancellationToken>()
@@ -262,7 +262,7 @@ public partial class IntegrationTests
         var requestContent = await CreateRequestContent(fileName, "pull_request");
 
         _applicationFactory.GitHubApiClient.GetChangedFiles(
-            Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+            Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
             4,
             Arg.Any<CancellationToken>()
         ).Returns(["MyLoots.rsi/Loot.png", "PickLoot.ogg", "shaders/swag.swsl", "Resources/Maps/main.ylm", "Resources/PrototypesMaps/main.ylm", "loot-picker.xaml"]);
@@ -274,7 +274,7 @@ public partial class IntegrationTests
         await _applicationFactory.GitHubApiClient
                                  .Received()
                                  .AddLabel(
-                                     Arg.Is<Repository>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+                                     Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
                                      4,
                                      ChangesLabels.NoCSharp,
                                      Arg.Any<CancellationToken>()
@@ -283,7 +283,7 @@ public partial class IntegrationTests
         await _applicationFactory.GitHubApiClient
                                  .DidNotReceive()
                                  .RemoveLabel(
-                                     Arg.Any<Repository>(),
+                                     Arg.Any<GithubRepo>(),
                                      Arg.Any<int>(),
                                      Arg.Any<string>(),
                                      Arg.Any<CancellationToken>()

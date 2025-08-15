@@ -1,21 +1,21 @@
-﻿using Dapper;
-using Microsoft.Extensions.FileSystemGlobbing;
+﻿using Microsoft.Extensions.FileSystemGlobbing;
 using Microsoft.Extensions.Options;
 using SS14.Labeller.Configuration;
-using SS14.Labeller.Database;
 using SS14.Labeller.DiscourseApi;
 using SS14.Labeller.GitHubApi;
 using SS14.Labeller.Labels;
 using SS14.Labeller.Messages;
 using SS14.Labeller.Models;
+using SS14.Labeller.Repository;
 
 namespace SS14.Labeller.Handlers;
 
 public class LabelPullRequestHandler(
     IGitHubApiClient client,
     IDiscourseClient discourseClient,
+    IDiscourseTopicsRepository topicRepository,
     IOptions<DiscourseConfig> config,
-    DataManager dataManager
+    IDiscourseTopicsRepository topicsRepository
 ) : RequestHandlerBase<PullRequestEvent>
 {
     private readonly DiscourseConfig _discourseConfig = config.Value;
@@ -82,22 +82,8 @@ public class LabelPullRequestHandler(
             // ReSharper disable once NullableWarningSuppressionIsUsed
             if (request.Label!.Name == StatusLabels.UndergoingDiscussion && _discourseConfig.Enable)
             {
-                // We are making a discussion, yipee!
-                await using var connection = dataManager.OpenConnection();
-                const string sql = """
-                                       SELECT 1 FROM Discussions
-                                       WHERE RepoOwner = @Owner AND RepoName = @Name AND IssueNumber = @Number
-                                       LIMIT 1;
-                                   """;
-
-                var exists = await connection.ExecuteScalarAsync<int?>(sql, new
-                {
-                    Owner = request.Repository.Owner.Login,
-                    Name = request.Repository.Name,
-                    Number = request.PullRequest.Number
-                });
-
-                if (exists is null)
+                var exists = await topicRepository.HasTopic(request.Repository.Owner.Login, request.Repository.Name, request.PullRequest.Number, ct);
+                if (exists)
                 { // need to make a new discussion.
                     var topic = await discourseClient.CreateTopic(
                         _discourseConfig.DiscussionCategoryId,
@@ -110,20 +96,10 @@ public class LabelPullRequestHandler(
 
                     await client.AddComment(repository, number, StatusMessages.StartedDiscussion + topicLink, ct);
 
-                    const string insert = """
-                                              INSERT INTO Discussions (RepoOwner, RepoName, IssueNumber, TopicId)
-                                              VALUES (@Owner, @Name, @Number, @TopicId);
-                                          """;
 
                     await discourseClient.ApplyTags(topic.TopicId, ct, _discourseConfig.Tagging.PrOpenTag);
 
-                    await connection.ExecuteAsync(insert, new
-                    {
-                        Owner = request.Repository.Owner.Login,
-                        Name = request.Repository.Name,
-                        Number = request.PullRequest.Number,
-                        TopicId = topic.TopicId
-                    });
+                    await topicRepository.Add(request.Repository.Owner.Login, request.Repository.Name, request.PullRequest.Number, topic.TopicId, ct);
                 }
             }
         }
@@ -142,9 +118,7 @@ public class LabelPullRequestHandler(
 
         if (request.Action is "closed" && !string.IsNullOrEmpty(request.PullRequest.MergedAt))
         { // PR got merged
-            var discussion =
-                await dataManager.GetTopicIdForDiscussion(request.Repository.Owner.Login, request.Repository.Name,
-                    number);
+            var discussion = await topicsRepository.FindTopicIdForDiscussion(request.Repository.Owner.Login, request.Repository.Name, number, ct);
 
             if (discussion is not null)
             {
@@ -160,8 +134,7 @@ public class LabelPullRequestHandler(
         {
             // pr was just closed, not merged.
             var discussion =
-                await dataManager.GetTopicIdForDiscussion(request.Repository.Owner.Login, request.Repository.Name,
-                    number);
+                await topicsRepository.FindTopicIdForDiscussion(request.Repository.Owner.Login, request.Repository.Name, number, ct);
 
             if (discussion is not null)
             {
