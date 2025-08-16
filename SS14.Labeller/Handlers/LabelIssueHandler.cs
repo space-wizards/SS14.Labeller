@@ -1,5 +1,5 @@
 ﻿using SS14.Labeller.GitHubApi;
-using SS14.Labeller.Labels;
+using SS14.Labeller.Labelling.Labels;
 using SS14.Labeller.Models;
 
 namespace SS14.Labeller.Handlers;
@@ -19,7 +19,7 @@ public class LabelIssueHandler(IGitHubApiClient client) : RequestHandlerBase<Iss
             var labels = request.Issue.Labels;
 
             if (labels.Length == 0)
-                await client.AddLabel(request.Repository, number, StatusLabels.Untriaged, ct);
+                await client.AddLabel(request.Repository, number, StatusLabel.Untriaged, ct);
         }
     }
 }

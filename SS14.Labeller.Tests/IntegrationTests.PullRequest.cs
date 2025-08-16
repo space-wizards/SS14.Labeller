@@ -4,7 +4,7 @@ using SS14.Labeller.Models;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using SS14.Labeller.Labels;
+using SS14.Labeller.Labelling.Labels;
 
 namespace SS14.Labeller.Tests;
 
@@ -45,7 +45,7 @@ public partial class IntegrationTests
                                  .AddLabel(
                                      Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
                                      4,
-                                     BranchLabels.Staging,
+                                     BranchLabel.Staging,
                                      Arg.Any<CancellationToken>()
                                  );
     }
@@ -66,7 +66,7 @@ public partial class IntegrationTests
                                  .AddLabel(
                                      Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
                                      4,
-                                     BranchLabels.Stable,
+                                     BranchLabel.Stable,
                                      Arg.Any<CancellationToken>()
                                  );
     }
@@ -87,7 +87,7 @@ public partial class IntegrationTests
                                  .AddLabel(
                                      Arg.Any<GithubRepo>(),
                                      Arg.Any<int>(),
-                                     BranchLabels.Stable,
+                                     BranchLabel.Stable,
                                      Arg.Any<CancellationToken>()
                                  );
         await _applicationFactory.GitHubApiClient
@@ -95,7 +95,7 @@ public partial class IntegrationTests
                                  .AddLabel(
                                      Arg.Any<GithubRepo>(),
                                      Arg.Any<int>(),
-                                     BranchLabels.Staging,
+                                     BranchLabel.Staging,
                                      Arg.Any<CancellationToken>()
                                  );
     }
@@ -112,11 +112,11 @@ public partial class IntegrationTests
             4,
             Arg.Any<CancellationToken>()
         ).Returns(["LootSystem.cs", "Loot.png",]);
-        _applicationFactory.GitHubApiClient.GetPermission(
-            Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+        _applicationFactory.GitHubApiClient.IsMaintainer(
             "Fildrance",
+            Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
             Arg.Any<CancellationToken>()
-        ).Returns(Task.FromResult("write"));
+        ).Returns(Task.FromResult(true));
 
         // Act
         await _client.PostAsync("/webhook", requestContent);
@@ -127,7 +127,7 @@ public partial class IntegrationTests
                                  .AddLabel(
                                      Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
                                      4,
-                                     StatusLabels.Approved,
+                                     StatusLabel.Approved,
                                      Arg.Any<CancellationToken>()
                                  );
     }
@@ -144,11 +144,11 @@ public partial class IntegrationTests
             4,
             Arg.Any<CancellationToken>()
         ).Returns(["LootSystem.cs", "Loot.png",]);
-        _applicationFactory.GitHubApiClient.GetPermission(
-            Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+        _applicationFactory.GitHubApiClient.IsMaintainer(
             "Fildrance",
+            Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
             Arg.Any<CancellationToken>()
-        ).Returns(Task.FromResult("read"));
+        ).Returns(Task.FromResult(true));
 
         // Act
         await _client.PostAsync("/webhook", requestContent);
@@ -159,7 +159,7 @@ public partial class IntegrationTests
                                  .AddLabel(
                                      Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
                                      4,
-                                     StatusLabels.RequireReview,
+                                     StageOfWorkLabel.RequireReview,
                                      Arg.Any<CancellationToken>()
                                  );
     }
@@ -186,7 +186,7 @@ public partial class IntegrationTests
                                  .AddLabel(
                                      Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
                                      4,
-                                     "size/L",
+                                     SizeLabel.L,
                                      Arg.Any<CancellationToken>()
                                  );
 
@@ -195,7 +195,7 @@ public partial class IntegrationTests
                                  .RemoveLabel(
                                      Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
                                      4,
-                                     "size/S",
+                                     SizeLabel.S,
                                      Arg.Any<CancellationToken>()
                                  );
     }
@@ -222,7 +222,7 @@ public partial class IntegrationTests
                                  .AddLabel(
                                      Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
                                      4,
-                                     ChangesLabels.Sprites,
+                                     ChangesLabel.Sprites,
                                      Arg.Any<CancellationToken>()
                                  );
 
@@ -231,7 +231,7 @@ public partial class IntegrationTests
                                  .AddLabel(
                                      Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
                                      4,
-                                     ChangesLabels.Audio,
+                                     ChangesLabel.Audio,
                                      Arg.Any<CancellationToken>()
                                  );
 
@@ -240,7 +240,7 @@ public partial class IntegrationTests
                                  .AddLabel(
                                      Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
                                      4,
-                                     ChangesLabels.NoCSharp,
+                                     ChangesLabel.NoCSharp,
                                      Arg.Any<CancellationToken>()
                                  );
 
@@ -249,7 +249,7 @@ public partial class IntegrationTests
                                  .RemoveLabel(
                                      Arg.Any<GithubRepo>(),
                                      Arg.Any<int>(),
-                                     Arg.Any<string>(),
+                                     Arg.Any<LabelBase>(),
                                      Arg.Any<CancellationToken>()
                                  );
     }
@@ -276,7 +276,7 @@ public partial class IntegrationTests
                                  .AddLabel(
                                      Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
                                      4,
-                                     ChangesLabels.NoCSharp,
+                                     ChangesLabel.NoCSharp,
                                      Arg.Any<CancellationToken>()
                                  );
 
@@ -285,7 +285,7 @@ public partial class IntegrationTests
                                  .RemoveLabel(
                                      Arg.Any<GithubRepo>(),
                                      Arg.Any<int>(),
-                                     Arg.Any<string>(),
+                                     Arg.Any<LabelBase>(),
                                      Arg.Any<CancellationToken>()
                                  );
     }

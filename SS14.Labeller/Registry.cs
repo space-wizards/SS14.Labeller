@@ -4,6 +4,7 @@ using SS14.Labeller.Database;
 using SS14.Labeller.DiscourseApi;
 using SS14.Labeller.GitHubApi;
 using SS14.Labeller.Handlers;
+using SS14.Labeller.Labelling;
 using SS14.Labeller.Repository;
 using System.Net.Http.Headers;
 
@@ -59,11 +60,14 @@ public static class Registry
             service.AddHttpClient<IDiscourseClient, DummyDiscourseClient>();
         }
 
+        service.AddSingleton<ILabelManager, LabelManager>();
+        
         service.AddSingleton<RequestHandlerBase, LabelIssueHandler>();
         service.AddSingleton<RequestHandlerBase, LabelPullRequestReviewHandler>();
         service.AddSingleton<RequestHandlerBase, LabelPullRequestHandler>();
 
         service.AddSingleton<IDiscourseTopicsRepository, DiscourseTopicsRepository>();
+
         service.AddHostedService<DatabaseMigrationApplyingBackgroundService>();
 
         service.AddSingleton<IReadOnlyDictionary<string, RequestHandlerBase>>(

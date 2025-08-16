@@ -2,7 +2,7 @@
 
 namespace SS14.Labeller.Models;
 
-public class PullRequestReviewEvent : EventBase
+public class PullRequestReviewEvent : EventBase, IPullRequestAwareEvent
 {
     [JsonPropertyName("pull_request")]
     public required PullRequest PullRequest { get; set; }

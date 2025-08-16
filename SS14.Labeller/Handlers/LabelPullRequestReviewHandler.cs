@@ -1,10 +1,11 @@
 ﻿using SS14.Labeller.GitHubApi;
-using SS14.Labeller.Labels;
+using SS14.Labeller.Labelling;
+using SS14.Labeller.Labelling.Labels;
 using SS14.Labeller.Models;
 
 namespace SS14.Labeller.Handlers;
 
-public class LabelPullRequestReviewHandler(IGitHubApiClient client)
+public class LabelPullRequestReviewHandler(IGitHubApiClient client, ILabelManager labelManager)
     : RequestHandlerBase<PullRequestReviewEvent>
 {
     /// <inheritdoc />
@@ -29,24 +30,18 @@ public class LabelPullRequestReviewHandler(IGitHubApiClient client)
         if (isClosed || isMerged)
             return;
 
-        var number = pr.Number;
-        var permission = await client.GetPermission(repo, user, ct);
-        if (permission is "write" or "admin")
+        var isMaintainer = await client.IsMaintainer(user, repo, ct);
+        if (isMaintainer)
         {
 #pragma warning disable CS8509 // The switch expression does not handle all possible values of its input type (it is not exhaustive).
             await (state switch
             {
                 "approved"
-                    => client.AddLabel(repo, number, StatusLabels.Approved, ct),
-                "changes_requested" =>
-                    Task.WhenAll(
-                        // We remove the Needs Review label, later down the line when a review is re-requested, we will apply this label again.
-                        client.RemoveLabel(repo, number, StatusLabels.RequireReview, ct),
-                        client.AddLabel(repo, number, StatusLabels.AwaitingChanges, ct)
-                        )
+                    => labelManager.EnsureLabeled(request, StatusLabel.Approved, ct),
+                "changes_requested" 
+                    => labelManager.EnsureLabeled(request, StageOfWorkLabel.AwaitingChanges, ct)
             });
 #pragma warning restore CS8509 // The switch expression does not handle all possible values of its input type (it is not exhaustive).
-
         }
     }
 }
