@@ -31,7 +31,7 @@ public partial class IntegrationTests
         await _applicationFactory.GitHubApiClient
                                  .Received()
                                  .AddLabel(
-                                     Arg.Is<Repository>(x => x.Name == "Kaizen" && x.Owner.Login == "Fildrance"),
+                                     Arg.Is<GithubRepo>(x => x.Name == "Kaizen" && x.Owner.Login == "Fildrance"),
                                      31,
                                      StatusLabels.Untriaged,
                                      Arg.Any<CancellationToken>()
@@ -58,7 +58,7 @@ public partial class IntegrationTests
         await _applicationFactory.GitHubApiClient
                                  .DidNotReceive()
                                  .AddLabel(
-                                     Arg.Any<Repository>(),
+                                     Arg.Any<GithubRepo>(),
                                      Arg.Any<int>(),
                                      Arg.Any<string>(),
                                      Arg.Any<CancellationToken>()

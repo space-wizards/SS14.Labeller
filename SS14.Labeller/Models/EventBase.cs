@@ -4,10 +4,10 @@ public abstract class EventBase
 {
     public required string Action { get; init; }
 
-    public required Repository Repository { get; init; }
+    public required GithubRepo Repository { get; init; }
 }
 
-public class Repository
+public class GithubRepo
 {
     public required User Owner { get; init; }
 

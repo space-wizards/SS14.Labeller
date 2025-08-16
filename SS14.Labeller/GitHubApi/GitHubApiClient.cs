@@ -9,7 +9,7 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
 {
     private const string BaseUrl = "https://api.github.com";
 
-    public async Task AddLabel(Repository repo, int number, string label, CancellationToken ct)
+    public async Task AddLabel(GithubRepo repo, int number, string label, CancellationToken ct)
     {
         var request = new AddLabelRequest { labels = [label] };
         var json = JsonSerializer.Serialize(request, SourceGenerationContext.Default.AddLabelRequest);
@@ -18,12 +18,12 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
         await httpClient.PostAsync($"{BaseUrl}/repos/{repo.Owner.Login}/{repo.Name}/issues/{number}/labels", content, ct);
     }
 
-    public async Task RemoveLabel(Repository repo, int number, string label, CancellationToken ct)
+    public async Task RemoveLabel(GithubRepo repo, int number, string label, CancellationToken ct)
     {
         await httpClient.DeleteAsync($"{BaseUrl}/repos/{repo.Owner.Login}/{repo.Name}/issues/{number}/labels/{Uri.EscapeDataString(label)}", ct);
     }
 
-    public async Task<List<string>> GetChangedFiles(Repository repo, int prNumber, CancellationToken ct)
+    public async Task<List<string>> GetChangedFiles(GithubRepo repo, int prNumber, CancellationToken ct)
     {
         // TODO: Ratelimit? Might explode on big PRs???
         // TODO: Update to use ParseNextPageUrl
@@ -50,7 +50,7 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
     }
 
     /// <inheritdoc />
-    public async Task<string?> GetPermission(Repository repo, string? user, CancellationToken ct)
+    public async Task<string?> GetPermission(GithubRepo repo, string? user, CancellationToken ct)
     {
         var permRes = await httpClient.GetAsync($"{BaseUrl}/repos/{repo.Owner.Login}/{repo.Name}/collaborators/{user}/permission", ct);
         if (!permRes.IsSuccessStatusCode)
@@ -61,7 +61,7 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
         return permJson.RootElement.GetProperty("permission").GetString();
     }
 
-    public async Task AddComment(Repository repo, int number, string comment, CancellationToken ct)
+    public async Task AddComment(GithubRepo repo, int number, string comment, CancellationToken ct)
     {
         var request = new AddCommentRequest { body = $"{comment}\n\n{StatusMessages.CommentPostfix}" };
         var json = JsonSerializer.Serialize(request, SourceGenerationContext.Default.AddCommentRequest);
@@ -70,7 +70,7 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
         await httpClient.PostAsync($"{BaseUrl}/repos/{repo.Owner.Login}/{repo.Name}/issues/{number}/comments", content, ct);
     }
 
-    public async Task<List<IssueComment>> GetComments(Repository repo, int prNumber, CancellationToken ct)
+    public async Task<List<IssueComment>> GetComments(GithubRepo repo, int prNumber, CancellationToken ct)
     {
         var allComments = new List<IssueComment>();
         var url = $"{BaseUrl}/repos/{repo.Owner.Login}/{repo.Name}/issues/{prNumber}/comments?per_page=100";
