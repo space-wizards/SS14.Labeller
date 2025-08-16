@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace SS14.Labeller.Labelling.Labels;
 
 public sealed class SizeLabel : LabelGenericBase<SizeLabel>
@@ -31,20 +33,20 @@ public sealed class SizeLabel : LabelGenericBase<SizeLabel>
         return labelName.StartsWith(Prefix);
     }
 
-    public static SizeLabel? TryGetLabelFor(int totalDiff)
+    public static bool TryGetLabelFor(int totalDiff, [NotNullWhen(true)] out SizeLabel? label)
     {
-        SizeLabel? sizeLabel = null;
+        label = null;
         // ReSharper disable once LoopCanBeConvertedToQuery no fuck you, the resulting LINQ query is unreadable
         foreach (var kvp in Sizes.OrderByDescending(k => k.Key))
         {
             if (totalDiff < kvp.Key)
                 continue;
 
-            sizeLabel = kvp.Value;
-            break;
+            label = kvp.Value;
+            return true;
         }
 
-        return sizeLabel;
+        return false;
     }
 
     /// <inheritdoc />

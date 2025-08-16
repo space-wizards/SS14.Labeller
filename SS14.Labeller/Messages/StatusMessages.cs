@@ -8,25 +8,25 @@ public static class StatusMessages
         <sub>[Beep Boop](https://github.com/space-wizards/SS14.Labeller), this comment was made automatically.</sub>
         """;
 
-    public const string DiscourseTopicBody =
-        """
-        {link}
-        
-        [poll type=regular results=always public=true chartType=bar groups=maintainers]
-        # What to do?
-        * Merge
-        * Close
-        * Other (Comment)
-        [/poll]
-        """;
+    public static string DiscourseTopicBody(string link) =>
+        $"""
+         {link}
+         
+         [poll type=regular results=always public=true chartType=bar groups=maintainers]
+         # What to do?
+         * Merge
+         * Close
+         * Other (Comment)
+         [/poll]
+         """;
 
-    public const string StartedDiscussion =
-        """
-        A discussion thread has been opened.
-        
-        Please limit all further game design discussion to the following Topic:
-        
-        """;
+    public static string StartedDiscussion(string topicName) =>
+        $"""
+         A discussion thread has been opened.
+         
+         Please limit all further game design discussion to the following Topic: {topicName}
+         
+         """;
 
     public const string UntriagedPullRequestMergedComment =
         """
