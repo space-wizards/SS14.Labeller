@@ -79,7 +79,7 @@
     "assignees": [],
     "requested_reviewers": [],
     "requested_teams": [],
-    "labels": [],
+    "labels": [ { "name": "S:Needs Review" } ],
     "milestone": null,
     "draft": false,
     "commits_url": "https://api.github.com/repos/Fildrance/SS14.Labeller/pulls/4/commits",
