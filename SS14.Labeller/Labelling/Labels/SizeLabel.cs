@@ -25,14 +25,6 @@ public sealed class SizeLabel : LabelGenericBase<SizeLabel>
         { 5000, XL },
     };
 
-    public static bool IsSizeLabel(string? labelName)
-    {
-        if (labelName == null)
-            return false;
-
-        return labelName.StartsWith(Prefix);
-    }
-
     public static bool TryGetLabelFor(int totalDiff, [NotNullWhen(true)] out SizeLabel? label)
     {
         label = null;

@@ -48,7 +48,7 @@ public class LabelPullRequestHandler(
             PullRequestEventType.ClosedMerged => OnMerged(ct, repoOwner, repoName, prNumber, labels, repository),
             PullRequestEventType.Opened => OnOpened(request, ct, labels, pr, repository),
             PullRequestEventType.ReviewRequested => OnReviewRequested(request, ct, repository),
-            PullRequestEventType.None => Task.CompletedTask
+            _ => Task.CompletedTask
         });
 
         var totalDiff = pr.Additions + pr.Deletions;

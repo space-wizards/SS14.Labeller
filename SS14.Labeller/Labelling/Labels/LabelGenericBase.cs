@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 
 namespace SS14.Labeller.Labelling.Labels;
 
@@ -15,7 +16,7 @@ public abstract class LabelBase(string value)
 
     protected abstract LabelBase[] GetAll();
 
-    public bool TryGetFromString(string labelName, out LabelBase? foundLabel)
+    public bool TryGetFromString(string labelName, [NotNullWhen(true)] out LabelBase? foundLabel)
     {
         foundLabel = null;
         foreach (var label in GetAll())
@@ -34,6 +35,7 @@ public abstract class LabelBase(string value)
     public override string ToString() => Value;
 }
 
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)]
 public abstract class LabelGenericBase<TLabel>(string value) : LabelBase(value)
     where TLabel : LabelBase
 {
@@ -42,9 +44,9 @@ public abstract class LabelGenericBase<TLabel>(string value) : LabelBase(value)
     protected override TLabel[] GetAll()
     {
         _cached ??= GetType().GetFields(BindingFlags.Static | BindingFlags.Public)
-                              .Where(x => x.FieldType == typeof(TLabel))
-                              .Select(x => (TLabel)x.GetValue(null))
-                              .ToArray();
+                                  .Where(x => x.FieldType == typeof(TLabel))
+                                  .Select(x => (TLabel)x.GetValue(null)!)
+                                  .ToArray();
         return _cached;
     }
 }
