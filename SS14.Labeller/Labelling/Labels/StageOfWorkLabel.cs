@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace SS14.Labeller.Labelling.Labels;
 
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)]
 public class StageOfWorkLabel : LabelGenericBase<StageOfWorkLabel>
 {
     private const string Prefix = "S: ";

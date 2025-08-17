@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace SS14.Labeller.Labelling.Labels;
 
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)]
 public sealed class SizeLabel : LabelGenericBase<SizeLabel>
 {
     private SizeLabel(string value) : base(value)

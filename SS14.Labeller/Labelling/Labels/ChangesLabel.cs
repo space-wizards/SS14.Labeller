@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace SS14.Labeller.Labelling.Labels;
 
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)]
 public sealed class ChangesLabel : LabelGenericBase<ChangesLabel>
 {
     private ChangesLabel(string value) : base(value)
