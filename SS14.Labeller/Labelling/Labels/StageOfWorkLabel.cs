@@ -2,7 +2,7 @@ namespace SS14.Labeller.Labelling.Labels;
 
 public class StageOfWorkLabel : LabelGenericBase<StageOfWorkLabel>
 {
-    private const string Prefix = "S:";
+    private const string Prefix = "S: ";
 
     private StageOfWorkLabel(string value) : base(value)
     {
