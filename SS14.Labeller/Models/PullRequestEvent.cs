@@ -4,6 +4,8 @@ namespace SS14.Labeller.Models;
 
 public class PullRequestEvent : EventBase, IPullRequestAwareEvent
 {
+    public const string EventTypeName = "pull_request";
+
     [JsonPropertyName("pull_request")] public required PullRequest PullRequest { get; set; }
 
     /// <summary>

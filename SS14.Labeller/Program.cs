@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using SS14.Labeller.Configuration;
 using SS14.Labeller.Handlers;
-using SS14.Labeller.Helpers;
+using SS14.Labeller.Middlewares;
+using SS14.Labeller.Models;
 
 [module:DapperAot]
 
@@ -30,32 +31,20 @@ public class Program
 
         app.MapGet("/", () => Results.Ok("Nik is a cat!"));
 
+        app.UseMiddleware<GitHubWebhookAuthorizationMiddleware>();
         app.MapPost(
             "/webhook",
             async (
                 HttpContext context,
-                [FromHeader(Name = "X-GitHub-Event")] string githubEvent,
-                [FromServices] IReadOnlyDictionary<string, RequestHandlerBase> handlers,
+                EventBase @event,
+                [FromServices] IReadOnlyDictionary<Type, RequestHandlerBase> handlers,
                 [FromServices] IOptions<GitHubConfig> githubConfig,
                 [FromServices] ILogger<Program> logger
             ) =>
             {
-                if (string.IsNullOrEmpty(githubEvent))
-                    return Results.BadRequest("Missing GitHub event.");
-
-                var request = context.Request;
-
-                using var memStream = new MemoryStream();
-                await request.Body.CopyToAsync(memStream);
-                var bodyBytes = memStream.ToArray();
-
-                var headers = request.Headers;
-                if (!SecurityHelper.IsRequestAuthorized(bodyBytes, githubConfig.Value.WebhookSecret, headers, out var errorResponse))
-                    return errorResponse;
-
-                if (handlers.TryGetValue(githubEvent, out var handler))
+                if (handlers.TryGetValue(@event.GetType(), out var handler))
                 {
-                    await handler.Handle(bodyBytes, context.RequestAborted);
+                    await handler.Handle(@event, context.RequestAborted);
                 }
 
                 return Results.NoContent();
