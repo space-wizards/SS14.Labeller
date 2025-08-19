@@ -20,7 +20,7 @@ public class InsertDiscourseTopicCommand : DatabaseCommandBase<int>
     }
 
     private const string Sql = $"""
-                                INSERT INTO Discussions (RepoOwner, RepoName, IssueNumber, TopicId)
+                                INSERT INTO discourse.discussions (repo_owner, repo_name, issue_number, topic_id)
                                 VALUES (@{nameof(RepoOwner)}, @{nameof(RepoName)}, @{nameof(IssueNumber)}, @{nameof(TopicId)});
                                 """;
 

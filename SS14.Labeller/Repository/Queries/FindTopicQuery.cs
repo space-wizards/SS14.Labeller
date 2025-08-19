@@ -18,8 +18,8 @@ public class FindTopicQuery : DatabaseQueryBase<int?>
     }
 
     private const string Sql = $"""
-                                SELECT TopicId FROM Discussions 
-                                WHERE RepoOwner = @{nameof(RepoOwner)} AND RepoName = @{nameof(RepoName)} AND IssueNumber = @{nameof(IssueNumber)}
+                                SELECT topic_id FROM discourse.discussions 
+                                WHERE repo_owner = @{nameof(RepoOwner)} AND repo_name = @{nameof(RepoName)} AND issue_number = @{nameof(IssueNumber)}
                                 """;
 
     /// <inheritdoc />

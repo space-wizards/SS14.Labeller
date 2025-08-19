@@ -7,6 +7,7 @@ using SS14.Labeller.Handlers;
 using SS14.Labeller.Labelling;
 using SS14.Labeller.Repository;
 using System.Net.Http.Headers;
+using FluentMigrator.Runner;
 
 namespace SS14.Labeller;
 
@@ -70,11 +71,23 @@ public static class Registry
 
         service.AddSingleton<IDiscourseTopicsRepository, DiscourseTopicsRepository>();
 
-        service.AddHostedService<DatabaseMigrationApplyingBackgroundService>();
-
         service.AddSingleton<IReadOnlyDictionary<string, RequestHandlerBase>>(
             sp => sp.GetServices<RequestHandlerBase>()
                     .ToDictionary(x => x.EventType)
         );
+
+        var connectionString = configuration.GetConnectionString("Default")
+                               ?? "Data Source=Application.db";
+
+        service.AddFluentMigratorCore()
+               .ConfigureRunner(rb => rb
+                                      // Add SQLite support to FluentMigrator
+                                      .AddPostgres()
+                                      // Set the connection string
+                                      .WithGlobalConnectionString(connectionString)
+                                      // Define the assembly containing the migrations, maintenance migrations and other customizations
+                                      .ScanIn(typeof(DatabaseMigration).Assembly).For.All())
+               // Enable logging to console in the FluentMigrator way
+               .AddLogging(lb => lb.AddFluentMigratorConsole());
     }
 }
