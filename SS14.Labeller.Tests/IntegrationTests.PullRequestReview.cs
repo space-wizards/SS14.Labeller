@@ -1,10 +1,10 @@
 ﻿using NSubstitute;
 using NUnit.Framework;
-using SS14.Labeller.Labels;
 using SS14.Labeller.Models;
 using System.Net;
 using System.Threading.Tasks;
 using System.Threading;
+using SS14.Labeller.Labelling.Labels;
 
 namespace SS14.Labeller.Tests;
 
@@ -18,11 +18,11 @@ public partial class IntegrationTests
         const string fileName = "pull_request_review_approve.json";
         var requestContent = await CreateRequestContent(fileName, "pull_request_review");
 
-        _applicationFactory.GitHubApiClient.GetPermission(
-            Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+        _applicationFactory.GitHubApiClient.IsMaintainer(
             "NonFildrance",
+            Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
             Arg.Any<CancellationToken>()
-        ).Returns(Task.FromResult("user"));
+        ).Returns(Task.FromResult(true));
 
         // Act
         var result = await _client.PostAsync("/webhook", requestContent);
@@ -40,7 +40,7 @@ public partial class IntegrationTests
                                  .AddLabel(
                                      Arg.Any<GithubRepo>(),
                                      Arg.Any<int>(),
-                                     Arg.Any<string>(),
+                                     Arg.Any<LabelBase>(),
                                      Arg.Any<CancellationToken>()
                                  );
     }
@@ -52,11 +52,11 @@ public partial class IntegrationTests
         const string fileName = "pull_request_review_approve.json";
         var requestContent = await CreateRequestContent(fileName, "pull_request_review");
 
-        _applicationFactory.GitHubApiClient.GetPermission(
-            Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+        _applicationFactory.GitHubApiClient.IsMaintainer(
             "Fildrance",
+            Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
             Arg.Any<CancellationToken>()
-        ).Returns(Task.FromResult("write"));
+        ).Returns(Task.FromResult(true));
 
         // Act
         var result = await _client.PostAsync("/webhook", requestContent);
@@ -74,7 +74,7 @@ public partial class IntegrationTests
                                  .AddLabel(
                                      Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
                                      4,
-                                     StatusLabels.Approved,
+                                     StatusLabel.Approved,
                                      Arg.Any<CancellationToken>()
                                  );
     }
@@ -86,11 +86,11 @@ public partial class IntegrationTests
         const string fileName = "pull_request_review_request_changes.json";
         var requestContent = await CreateRequestContent(fileName, "pull_request_review");
 
-        _applicationFactory.GitHubApiClient.GetPermission(
-            Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+        _applicationFactory.GitHubApiClient.IsMaintainer(
             "Fildrance",
+            Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
             Arg.Any<CancellationToken>()
-        ).Returns(Task.FromResult("write"));
+        ).Returns(Task.FromResult(true));
 
         // Act
         var result = await _client.PostAsync("/webhook", requestContent);
@@ -108,7 +108,7 @@ public partial class IntegrationTests
                                  .AddLabel(
                                      Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
                                      4,
-                                     StatusLabels.AwaitingChanges,
+                                     StageOfWorkLabel.AwaitingChanges,
                                      Arg.Any<CancellationToken>()
                                  );
 
@@ -117,7 +117,7 @@ public partial class IntegrationTests
                                  .RemoveLabel(
                                      Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
                                      4,
-                                     StatusLabels.RequireReview,
+                                     StageOfWorkLabel.RequireReview,
                                      Arg.Any<CancellationToken>()
                                  );
     }
@@ -129,11 +129,11 @@ public partial class IntegrationTests
         const string fileName = "pull_request_review_approve_merged.json";
         var requestContent = await CreateRequestContent(fileName, "pull_request_review");
 
-        _applicationFactory.GitHubApiClient.GetPermission(
-            Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+        _applicationFactory.GitHubApiClient.IsMaintainer(
             "Fildrance",
+            Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
             Arg.Any<CancellationToken>()
-        ).Returns(Task.FromResult("write"));
+        ).Returns(Task.FromResult(true));
 
         // Act
         var result = await _client.PostAsync("/webhook", requestContent);
@@ -151,7 +151,7 @@ public partial class IntegrationTests
                                  .AddLabel(
                                      Arg.Any<GithubRepo>(),
                                      Arg.Any<int>(),
-                                     Arg.Any<string>(),
+                                     Arg.Any<LabelBase>(),
                                      Arg.Any<CancellationToken>()
                                  );
 
@@ -160,7 +160,7 @@ public partial class IntegrationTests
                                  .RemoveLabel(
                                      Arg.Any<GithubRepo>(),
                                      Arg.Any<int>(),
-                                     Arg.Any<string>(),
+                                     Arg.Any<LabelBase>(),
                                      Arg.Any<CancellationToken>()
                                  );
     }
@@ -172,11 +172,11 @@ public partial class IntegrationTests
         const string fileName = "pull_request_review_commented.json";
         var requestContent = await CreateRequestContent(fileName, "pull_request_review");
 
-        _applicationFactory.GitHubApiClient.GetPermission(
-            Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+        _applicationFactory.GitHubApiClient.IsMaintainer(
             "Fildrance",
+            Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
             Arg.Any<CancellationToken>()
-        ).Returns(Task.FromResult("write"));
+        ).Returns(Task.FromResult(true));
 
         // Act
         var result = await _client.PostAsync("/webhook", requestContent);
@@ -194,7 +194,7 @@ public partial class IntegrationTests
                                  .AddLabel(
                                      Arg.Any<GithubRepo>(),
                                      Arg.Any<int>(),
-                                     Arg.Any<string>(),
+                                     Arg.Any<LabelBase>(),
                                      Arg.Any<CancellationToken>()
                                  );
 
@@ -203,7 +203,7 @@ public partial class IntegrationTests
                                  .RemoveLabel(
                                      Arg.Any<GithubRepo>(),
                                      Arg.Any<int>(),
-                                     Arg.Any<string>(),
+                                     Arg.Any<LabelBase>(),
                                      Arg.Any<CancellationToken>()
                                  );
     }

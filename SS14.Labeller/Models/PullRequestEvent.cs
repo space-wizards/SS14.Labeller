@@ -2,10 +2,9 @@
 
 namespace SS14.Labeller.Models;
 
-public class PullRequestEvent : EventBase
+public class PullRequestEvent : EventBase, IPullRequestAwareEvent
 {
-    [JsonPropertyName("pull_request")]
-    public required PullRequest PullRequest { get; set; }
+    [JsonPropertyName("pull_request")] public required PullRequest PullRequest { get; set; }
 
     /// <summary>
     /// The requested reviewer if the action was "review_requested".
@@ -18,6 +17,30 @@ public class PullRequestEvent : EventBase
     /// </summary>
     [JsonPropertyName("label")]
     public Label? Label { get; set; }
+
+    [JsonIgnore]
+    public PullRequestEventType EventType
+    {
+        get
+        {
+            if (Action == "opened") return PullRequestEventType.Opened;
+            if (Action == "labeled") return PullRequestEventType.Labelled;
+            if (Action == "review_requested") return PullRequestEventType.ReviewRequested;
+            if (Action == "closed" && !string.IsNullOrEmpty(PullRequest.MergedAt)) return PullRequestEventType.ClosedMerged;
+            if (Action == "closed") return PullRequestEventType.ClosedRejected;
+            return PullRequestEventType.None;
+        }
+    }
+}
+
+public enum PullRequestEventType
+{
+    None,
+    Labelled,
+    ClosedRejected,
+    ClosedMerged,
+    Opened,
+    ReviewRequested
 }
 
 public class PullRequest
@@ -34,12 +57,10 @@ public class PullRequest
 
     public int Deletions { get; set; }
 
-    [JsonPropertyName("merged_at")]
-    public string? MergedAt { get; set; }
+    [JsonPropertyName("merged_at")] public string? MergedAt { get; set; }
 
     public required string Title { get; set; }
-    [JsonPropertyName("html_url")]
-    public required string Url { get; set; }
+    [JsonPropertyName("html_url")] public required string Url { get; set; }
 }
 
 public class BranchInfo

@@ -3,7 +3,8 @@ using Microsoft.Extensions.Options;
 using SS14.Labeller.Configuration;
 using SS14.Labeller.DiscourseApi;
 using SS14.Labeller.GitHubApi;
-using SS14.Labeller.Labels;
+using SS14.Labeller.Labelling;
+using SS14.Labeller.Labelling.Labels;
 using SS14.Labeller.Messages;
 using SS14.Labeller.Models;
 using SS14.Labeller.Repository;
@@ -13,9 +14,9 @@ namespace SS14.Labeller.Handlers;
 public class LabelPullRequestHandler(
     IGitHubApiClient client,
     IDiscourseClient discourseClient,
-    IDiscourseTopicsRepository topicRepository,
-    IOptions<DiscourseConfig> config,
-    IDiscourseTopicsRepository topicsRepository
+    IDiscourseTopicsRepository topicsRepository,
+    ILabelManager labelManager,
+    IOptions<DiscourseConfig> config
 ) : RequestHandlerBase<PullRequestEvent>
 {
     private readonly DiscourseConfig _discourseConfig = config.Value;
@@ -28,7 +29,11 @@ public class LabelPullRequestHandler(
     {
         var pr = request.PullRequest;
 
-        var number = pr.Number;
+        var prNumber = pr.Number;
+
+        var repoOwner = request.Repository.Owner.Login;
+        var repoName = request.Repository.Name;
+
         var labels = pr.Labels
                        .Select(x => x.Name)
                        .ToArray();
@@ -36,157 +41,135 @@ public class LabelPullRequestHandler(
         // basic labels
         var repository = request.Repository;
 
-        if (request.Action is "opened")
+        await (request.EventType switch
         {
-            if (labels.Length == 0)
-                await client.AddLabel(repository, number, StatusLabels.Untriaged, ct);
+            PullRequestEventType.Labelled => OnLabelAdd(request, ct, repoOwner, repoName, prNumber, repository),
+            PullRequestEventType.ClosedRejected => OnClosed(ct, repoOwner, repoName, prNumber),
+            PullRequestEventType.ClosedMerged => OnMerged(ct, repoOwner, repoName, prNumber, labels, repository),
+            PullRequestEventType.Opened => OnOpened(request, ct, labels, pr, repository),
+            PullRequestEventType.ReviewRequested => OnReviewRequested(request, ct, repository),
+            _ => Task.CompletedTask
+        });
 
-            var targetBranch = pr.Base.Ref;
-            if (targetBranch == "stable" && !labels.Contains(BranchLabels.Stable))
-                await client.AddLabel(repository, number, BranchLabels.Stable, ct);
-            else if (targetBranch == "staging" && !labels.Contains(BranchLabels.Staging))
-                await client.AddLabel(repository, number, BranchLabels.Staging, ct);
-
-            var permission = await client.GetPermission(repository, pr.User.Login, ct);
-            if (permission is "write" or "admin")
-                await client.AddLabel(repository, number, StatusLabels.Approved, ct);
-
-            await client.AddLabel(repository, number, StatusLabels.RequireReview, ct);
+        var totalDiff = pr.Additions + pr.Deletions;
+        if (SizeLabel.TryGetLabelFor(totalDiff, out var sizeLabel))
+        {
+            await labelManager.EnsureLabeled(request, sizeLabel, ct);
         }
 
-        if (request.Action is "synchronize" or "opened")
+        var changedFiles = await client.GetChangedFiles(repository, prNumber, ct);
+
+        await EnsureChangesLabels(ChangesLabel.Sprites, ["**/*.rsi/*.png"], request, changedFiles, ct: ct);
+        await EnsureChangesLabels(ChangesLabel.Map, ["Resources/Maps/**/*.yml", "Resources/Prototypes/Maps/**/*.yml"], request, changedFiles, ct: ct);
+        await EnsureChangesLabels(ChangesLabel.Ui, ["**/*.xaml*"], request, changedFiles, ct:ct);
+        await EnsureChangesLabels(ChangesLabel.Shaders, ["**/*.sws"], request, changedFiles, ct: ct);
+        await EnsureChangesLabels(ChangesLabel.Audio, ["**/*.ogg"], request, changedFiles, ct: ct);
+        await EnsureChangesLabels(ChangesLabel.NoCSharp, ["**/*.cs"], request, changedFiles, isInverted: true, ct: ct);
+    }
+
+    private async Task EnsureChangesLabels(
+        ChangesLabel label,
+        string[] patterns,
+        PullRequestEvent request,
+        List<string> changedFiles,
+        bool isInverted = false,
+        CancellationToken ct = default
+    )
+    {
+        var matcher = new Matcher();
+        foreach (var pattern in patterns)
         {
-            var totalDiff = pr.Additions + pr.Deletions;
-            var sizeLabel = SizeLabels.TryGetLabelFor(totalDiff);
-
-            // remove the existing size/* labels
-            foreach (var label in labels)
-            {
-                if (label == sizeLabel)
-                    continue; // Don't remove a label that is accurate
-
-                if (label?.StartsWith(SizeLabels.Prefix, StringComparison.OrdinalIgnoreCase) == true)
-                {
-                    await client.RemoveLabel(repository, number, label, ct);
-                }
-            }
-
-            if (sizeLabel is not null && !labels.Contains(sizeLabel))
-            {
-                await client.AddLabel(repository, number, sizeLabel, ct);
-            }
+            matcher = matcher.AddInclude(pattern);
         }
 
-        if (request.Action is "labeled")
-        {
-            // ReSharper disable once NullableWarningSuppressionIsUsed
-            if (request.Label!.Name == StatusLabels.UndergoingDiscussion && _discourseConfig.Enable)
-            {
-                var exists = await topicRepository.HasTopic(request.Repository.Owner.Login, request.Repository.Name, request.PullRequest.Number, ct);
-                if (exists)
-                { // need to make a new discussion.
-                    var topic = await discourseClient.CreateTopic(
-                        _discourseConfig.DiscussionCategoryId,
-                        StatusMessages.DiscourseTopicBody
-                            .Replace("{link}", request.PullRequest.Url),
-                        request.PullRequest.Title,
-                        ct);
-
-                    var topicLink = _discourseConfig.Url + topic.PostUrl[1..];
-
-                    await client.AddComment(repository, number, StatusMessages.StartedDiscussion + topicLink, ct);
-
-
-                    await discourseClient.ApplyTags(topic.TopicId, ct, _discourseConfig.Tagging.PrOpenTag);
-
-                    await topicRepository.Add(request.Repository.Owner.Login, request.Repository.Name, request.PullRequest.Number, topic.TopicId, ct);
-                }
-            }
-        }
-
-        if (request.Action is "review_requested")
-        {
-            // ReSharper disable once NullableWarningSuppressionIsUsed - Asssuming review_requested, there should always be a requested reviewer.
-            var requestedPermission = await client.GetPermission(repository, request.RequestedReviewer!.Login, ct);
-
-            if (labels.Contains(StatusLabels.AwaitingChanges) && requestedPermission is "write" or "admin")
-            {
-                await client.AddLabel(repository, number, StatusLabels.RequireReview, ct);
-                await client.RemoveLabel(repository, number, StatusLabels.AwaitingChanges, ct);
-            }
-        }
-
-        if (request.Action is "closed" && !string.IsNullOrEmpty(request.PullRequest.MergedAt))
-        { // PR got merged
-            var discussion = await topicsRepository.FindTopicIdForDiscussion(request.Repository.Owner.Login, request.Repository.Name, number, ct);
-
-            if (discussion is not null)
-            {
-                // we have an active discussion, lets mark it as doneso
-                await discourseClient.ApplyTags(discussion.Value, ct, _discourseConfig.Tagging.PrMergedTag);
-            }
-
-            if (labels.Contains(StatusLabels.Untriaged))
-            {
-                await client.AddComment(repository, number, StatusMessages.UntriagedPullRequestMergedComment, ct);
-            }
-        } else if (request.Action is "closed")
-        {
-            // pr was just closed, not merged.
-            var discussion =
-                await topicsRepository.FindTopicIdForDiscussion(request.Repository.Owner.Login, request.Repository.Name, number, ct);
-
-            if (discussion is not null)
-            {
-                await discourseClient.ApplyTags(discussion.Value, ct, _discourseConfig.Tagging.PrClosedTag);
-            }
-        }
-
-        var changedFiles = await client.GetChangedFiles(repository, number, ct);
-
-        var sprites = new Matcher().AddInclude("**/*.rsi/*.png");
-        if (sprites.Match(changedFiles).HasMatches)
-            await client.AddLabel(repository, number, ChangesLabels.Sprites, ct);
-
-        var maps = new Matcher().AddInclude("Resources/Maps/**/*.yml")
-                                .AddInclude("Resources/Prototypes/Maps/**/*.yml");
-        if (maps.Match(changedFiles).HasMatches)
-            await client.AddLabel(repository, number, ChangesLabels.Map, ct);
+        // either we found and it is not inverted, or we did not and it is inverted
+        if ((matcher.Match(changedFiles).HasMatches && !isInverted) || (!matcher.Match(changedFiles).HasMatches && isInverted))
+            await labelManager.EnsureLabeled(request, label, ct);
         else
-            await RemoveLabelIfApplied(ChangesLabels.Map);
+            await labelManager.EnsureNotLabeled(request, label, ct);
+    }
 
-        var ui =      new Matcher().AddInclude("**/*.xaml*");
-        if (ui.Match(changedFiles).HasMatches)
-            await client.AddLabel(repository, number, ChangesLabels.Ui, ct);
-        else
-            await RemoveLabelIfApplied(ChangesLabels.Ui);
+    private async Task OnClosed(CancellationToken ct, string repoOwner, string repoName, int prNumber)
+    {
+        // pr was just closed, not merged.
+        var discussion = await topicsRepository.FindTopicIdForDiscussion(repoOwner, repoName, prNumber, ct);
 
-        var shaders = new Matcher().AddInclude("**/*.swsl");
-        if (shaders.Match(changedFiles).HasMatches)
-            await client.AddLabel(repository, number, ChangesLabels.Shaders, ct);
-        else
-            await RemoveLabelIfApplied(ChangesLabels.Shaders);
-
-        var audio =   new Matcher().AddInclude("**/*.ogg");
-        if (audio.Match(changedFiles).HasMatches)
-            await client.AddLabel(repository, number, ChangesLabels.Audio, ct);
-        else
-            await RemoveLabelIfApplied(ChangesLabels.Audio);
-
-        var cs = new Matcher().AddInclude("**/*.cs");
-        if (!cs.Match(changedFiles).HasMatches)
-            await client.AddLabel(repository, number, ChangesLabels.NoCSharp, ct);
-        else
-            await RemoveLabelIfApplied(ChangesLabels.NoCSharp);
-
-        return;
-
-        async Task RemoveLabelIfApplied(string label)
+        if (discussion is not null)
         {
-            if (!labels.Contains(label))
-                return;
-
-            await client.RemoveLabel(repository, number, label, ct);
+            await discourseClient.ApplyTags(discussion.Value, ct, _discourseConfig.Tagging.PrClosedTag);
         }
+    }
+
+    private async Task OnMerged(CancellationToken ct, string repoOwner, string repoName, int prNumber, string?[] labels, GithubRepo repository)
+    {
+        // PR got merged
+        var discussion = await topicsRepository.FindTopicIdForDiscussion(repoOwner, repoName, prNumber, ct);
+
+        if (discussion is not null)
+        {
+            // we have an active discussion, lets mark it as doneso
+            await discourseClient.ApplyTags(discussion.Value, ct, _discourseConfig.Tagging.PrMergedTag);
+        }
+
+        if (labels.Contains(StatusLabel.Untriaged))
+        {
+            await client.AddComment(repository, prNumber, StatusMessages.UntriagedPullRequestMergedComment, ct);
+        }
+    }
+
+    private async Task OnReviewRequested(PullRequestEvent request, CancellationToken ct, GithubRepo repository)
+    {
+        if (await client.IsMaintainer(request.RequestedReviewer!.Login, repository, ct))
+        {
+            await labelManager.EnsureLabeled(request, StageOfWorkLabel.RequireReview, ct);
+        }
+    }
+
+    private async Task OnLabelAdd(PullRequestEvent request, CancellationToken ct, string repoOwner, string repoName, int prNumber, GithubRepo repository)
+    {
+        if(!_discourseConfig.Enable)
+            return;
+
+        // ReSharper disable once NullableWarningSuppressionIsUsed
+        if (request.Label?.Name != StatusLabel.UndergoingDiscussion)
+            return;
+
+        var exists = await topicsRepository.HasTopic(repoOwner, repoName, prNumber, ct);
+        if (exists)
+        {
+            // need to make a new discussion.
+            var topic = await discourseClient.CreateTopic(
+                _discourseConfig.DiscussionCategoryId,
+                StatusMessages.DiscourseTopicBody(request.PullRequest.Url),
+                request.PullRequest.Title,
+                ct
+            );
+
+            var topicLink = _discourseConfig.Url + topic.PostUrl[1..];
+
+            await client.AddComment(repository, prNumber, StatusMessages.StartedDiscussion(topicLink), ct);
+
+            await discourseClient.ApplyTags(topic.TopicId, ct, _discourseConfig.Tagging.PrOpenTag);
+
+            await topicsRepository.Add(repoOwner, repoName, prNumber, topic.TopicId, ct);
+        }
+    }
+
+    private async Task OnOpened(PullRequestEvent request, CancellationToken ct, string?[] labels, PullRequest pr, GithubRepo repository)
+    {
+        if (labels.Length == 0)
+            await labelManager.EnsureLabeled(request, StatusLabel.Untriaged, ct);
+
+        var targetBranch = pr.Base.Ref;
+        if (targetBranch == "stable")
+            await labelManager.EnsureLabeled(request, BranchLabel.Stable, ct);
+        else if (targetBranch == "staging")
+            await labelManager.EnsureLabeled(request, BranchLabel.Staging, ct);
+
+        var isMaintainer = await client.IsMaintainer(pr.User.Login, repository, ct);
+        if (isMaintainer)
+            await labelManager.EnsureLabeled(request, StatusLabel.Approved, ct);
+
+        await labelManager.EnsureLabeled(request, StageOfWorkLabel.RequireReview, ct);
     }
 }

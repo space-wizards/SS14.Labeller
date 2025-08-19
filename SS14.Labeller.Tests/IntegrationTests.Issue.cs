@@ -1,10 +1,10 @@
 ﻿using NSubstitute;
 using NUnit.Framework;
-using SS14.Labeller.Labels;
 using SS14.Labeller.Models;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using SS14.Labeller.Labelling.Labels;
 
 namespace SS14.Labeller.Tests;
 
@@ -33,7 +33,7 @@ public partial class IntegrationTests
                                  .AddLabel(
                                      Arg.Is<GithubRepo>(x => x.Name == "Kaizen" && x.Owner.Login == "Fildrance"),
                                      31,
-                                     StatusLabels.Untriaged,
+                                     StatusLabel.Untriaged,
                                      Arg.Any<CancellationToken>()
                                  );
     }
@@ -60,7 +60,7 @@ public partial class IntegrationTests
                                  .AddLabel(
                                      Arg.Any<GithubRepo>(),
                                      Arg.Any<int>(),
-                                     Arg.Any<string>(),
+                                     Arg.Any<LabelBase>(),
                                      Arg.Any<CancellationToken>()
                                  );
     }

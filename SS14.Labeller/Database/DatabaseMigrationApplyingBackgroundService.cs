@@ -11,7 +11,7 @@ public sealed class DatabaseMigrationApplyingBackgroundService(ILogger<DatabaseM
         var connectionString = configuration.GetConnectionString("Default")
                                ?? "Data Source=Application.db";
         await using var con = new SqliteConnection(connectionString);
-
+        con.Open();
         Migrator.Migrate(con, "SS14.Labeller.Database.Migrations", logger);
     }
 }

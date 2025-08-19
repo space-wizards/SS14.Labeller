@@ -2,6 +2,7 @@
 using System.Text;
 using SS14.Labeller.Messages;
 using SS14.Labeller.Models;
+using SS14.Labeller.Labelling.Labels;
 
 namespace SS14.Labeller.GitHubApi;
 
@@ -9,18 +10,30 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
 {
     private const string BaseUrl = "https://api.github.com";
 
-    public async Task AddLabel(GithubRepo repo, int number, string label, CancellationToken ct)
+    /// <inheritdoc />
+    public async Task AddLabel(string owner, string repoName, int number, LabelBase label, CancellationToken ct)
     {
         var request = new AddLabelRequest { labels = [label] };
         var json = JsonSerializer.Serialize(request, SourceGenerationContext.Default.AddLabelRequest);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        await httpClient.PostAsync($"{BaseUrl}/repos/{repo.Owner.Login}/{repo.Name}/issues/{number}/labels", content, ct);
+        await httpClient.PostAsync($"{BaseUrl}/repos/{owner}/{repoName}/issues/{number}/labels", content, ct);
     }
 
-    public async Task RemoveLabel(GithubRepo repo, int number, string label, CancellationToken ct)
+    public Task AddLabel(GithubRepo repo, int number, LabelBase label, CancellationToken ct)
     {
-        await httpClient.DeleteAsync($"{BaseUrl}/repos/{repo.Owner.Login}/{repo.Name}/issues/{number}/labels/{Uri.EscapeDataString(label)}", ct);
+        return AddLabel(repo.Owner.Login, repo.Name, number, label, ct);
+    }
+
+    /// <inheritdoc />
+    public async Task RemoveLabel(string owner, string repoName, int number, LabelBase label, CancellationToken ct)
+    {
+        await httpClient.DeleteAsync($"{BaseUrl}/repos/{owner}/{repoName}/issues/{number}/labels/{Uri.EscapeDataString(label)}", ct);
+    }
+
+    public Task RemoveLabel(GithubRepo repo, int number, LabelBase label, CancellationToken ct)
+    {
+        return RemoveLabel(repo.Owner.Login, repo.Name, number, label, ct);
     }
 
     public async Task<List<string>> GetChangedFiles(GithubRepo repo, int prNumber, CancellationToken ct)
@@ -46,19 +59,22 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
 
             page++;
         }
+
         return files;
     }
 
     /// <inheritdoc />
-    public async Task<string?> GetPermission(GithubRepo repo, string? user, CancellationToken ct)
+    public async Task<bool> IsMaintainer(string? user, GithubRepo repo, CancellationToken ct)
     {
         var permRes = await httpClient.GetAsync($"{BaseUrl}/repos/{repo.Owner.Login}/{repo.Name}/collaborators/{user}/permission", ct);
         if (!permRes.IsSuccessStatusCode)
         {
             throw new Exception("Failed to get permissions! Does the github token have enough access?");
         }
+
         var permJson = JsonDocument.Parse(await permRes.Content.ReadAsStringAsync(ct));
-        return permJson.RootElement.GetProperty("permission").GetString();
+        var requestedPermission = permJson.RootElement.GetProperty("permission").GetString();
+        return requestedPermission is "write" or "admin";
     }
 
     public async Task AddComment(GithubRepo repo, int number, string comment, CancellationToken ct)
