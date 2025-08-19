@@ -37,7 +37,7 @@ jobs:
       run: dotnet build --configuration Release --no-restore
     - name: Create default database
       run: |
-        psql -h localhost -U labeller_user -c "CREATE DATABASE labeller;"
+        psql -h localhost -U labeller_user -d postgres -c "CREATE DATABASE labeller;"
       env:
         PGPASSWORD: example
     - name: SS14.Labeller.Tests
