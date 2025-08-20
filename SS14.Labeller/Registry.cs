@@ -14,13 +14,15 @@ public static class Registry
 {
     public static void RegisterDependencies(this IServiceCollection service, IConfiguration configuration)
     {
+#pragma warning disable IL2026
         service.AddOptions<DiscourseConfig>()
-                         .Bind(configuration.GetSection(DiscourseConfig.Name))
-                         .ValidateDataAnnotations();
+               .Bind(configuration.GetSection(DiscourseConfig.Name))
+               .ValidateDataAnnotations();
 
         service.AddOptions<GitHubConfig>()
-                         .Bind(configuration.GetSection(GitHubConfig.Name))
-                         .ValidateDataAnnotations();
+               .Bind(configuration.GetSection(GitHubConfig.Name))
+               .ValidateDataAnnotations();
+#pragma warning restore IL2026
 
         service.ConfigureHttpJsonOptions(options =>
         {

@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace SS14.Labeller.Labelling.Labels;
 
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)]
 public sealed class SizeLabel : LabelGenericBase<SizeLabel>
 {
     private SizeLabel(string value) : base(value)
@@ -24,14 +25,6 @@ public sealed class SizeLabel : LabelGenericBase<SizeLabel>
         { 1000, L },
         { 5000, XL },
     };
-
-    public static bool IsSizeLabel(string? labelName)
-    {
-        if (labelName == null)
-            return false;
-
-        return labelName.StartsWith(Prefix);
-    }
 
     public static bool TryGetLabelFor(int totalDiff, [NotNullWhen(true)] out SizeLabel? label)
     {

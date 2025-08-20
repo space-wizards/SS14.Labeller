@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace SS14.Labeller.Labelling.Labels;
 
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)]
 public class StatusLabel : LabelGenericBase<StatusLabel>
 {
     private StatusLabel(string value) : base(value)

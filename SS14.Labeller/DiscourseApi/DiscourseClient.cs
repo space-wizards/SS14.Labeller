@@ -64,7 +64,7 @@ public class UpdatePostRequest
 {
     // ReSharper disable InconsistentNaming
     public required int category_id { get; set; }
-    public string[] tags { get; set; }
-    public string title { get; set; }
+    public required string[] tags { get; set; }
+    public required string title { get; set; }
     // ReSharper restore InconsistentNaming
 }

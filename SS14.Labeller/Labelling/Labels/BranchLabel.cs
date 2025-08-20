@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace SS14.Labeller.Labelling.Labels;
 
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)]
 public sealed class BranchLabel : LabelGenericBase<BranchLabel>
 {
     private BranchLabel(string value) : base(value)

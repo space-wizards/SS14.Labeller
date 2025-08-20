@@ -45,6 +45,16 @@ public enum PullRequestEventType
     ReviewRequested
 }
 
+public enum PullRequestEventType
+{
+    None,
+    Labelled,
+    ClosedRejected,
+    ClosedMerged,
+    Opened,
+    ReviewRequested
+}
+
 public class PullRequest
 {
     public int Number { get; set; }
