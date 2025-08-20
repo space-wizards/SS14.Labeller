@@ -7,9 +7,6 @@ namespace SS14.Labeller.Handlers;
 public class LabelIssueHandler(IGitHubApiClient client) : RequestHandlerBase<IssuesEvent>
 {
     /// <inheritdoc />
-    public override string EventType => "issues";
-
-    /// <inheritdoc />
     protected override async Task HandleInternal(IssuesEvent request, CancellationToken ct)
     {
         var action = request.Action;
