@@ -10,20 +10,20 @@ public static class SecurityHelper
         byte[] body, 
         string gitHubSecret, 
         IHeaderDictionary headerDictionary, 
-        [NotNullWhen(false)] out IResult? unauthorized
+        [NotNullWhen(false)] out string? unauthorizedError
     )
     {
-        unauthorized = null;
+        unauthorizedError = null;
         if (!headerDictionary.TryGetValue("X-Hub-Signature-256", out var signatureHeader))
         {
-            unauthorized = Results.BadRequest("Missing signature header.");
+            unauthorizedError = "Missing signature header.";
             return false;
         }
 
         var expectedSignature = "sha256=" + EncodingHelper.ToHmacSha256(body, gitHubSecret);
         if (!CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(expectedSignature), Encoding.UTF8.GetBytes(signatureHeader!)))
         {
-            unauthorized = Results.Unauthorized();
+            unauthorizedError = "Invalid hash";
             return false;
         }
 

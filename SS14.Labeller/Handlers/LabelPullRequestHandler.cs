@@ -22,9 +22,6 @@ public class LabelPullRequestHandler(
     private readonly DiscourseConfig _discourseConfig = config.Value;
 
     /// <inheritdoc />
-    public override string EventType => "pull_request";
-
-    /// <inheritdoc />
     protected override async Task HandleInternal(PullRequestEvent request, CancellationToken ct)
     {
         var pr = request.PullRequest;

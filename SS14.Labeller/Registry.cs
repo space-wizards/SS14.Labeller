@@ -71,9 +71,9 @@ public static class Registry
 
         service.AddSingleton<IDiscourseTopicsRepository, DiscourseTopicsRepository>();
 
-        service.AddSingleton<IReadOnlyDictionary<string, RequestHandlerBase>>(
+        service.AddSingleton<IReadOnlyDictionary<Type, RequestHandlerBase>>(
             sp => sp.GetServices<RequestHandlerBase>()
-                    .ToDictionary(x => x.EventType)
+                    .ToDictionary(x => x.CanHandleType)
         );
 
         var connectionString = configuration.GetConnectionString("Default")

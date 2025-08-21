@@ -9,9 +9,6 @@ public class LabelPullRequestReviewHandler(IGitHubApiClient client, ILabelManage
     : RequestHandlerBase<PullRequestReviewEvent>
 {
     /// <inheritdoc />
-    public override string EventType => "pull_request_review";
-
-    /// <inheritdoc />
     protected override async Task HandleInternal(PullRequestReviewEvent request, CancellationToken ct)
     {
         var pr = request.PullRequest;
