@@ -1,5 +1,5 @@
 ﻿using System.Data.Common;
-using Microsoft.Data.Sqlite;
+using Npgsql;
 
 namespace SS14.Labeller.Repository;
 
@@ -9,7 +9,7 @@ public class RepositoryBase(IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("Default") 
                                ?? "Data Source=Application.db";
-        var con = new SqliteConnection(connectionString);
+        var con = new NpgsqlConnection(connectionString);
         con.Open();
         return con;
     }
