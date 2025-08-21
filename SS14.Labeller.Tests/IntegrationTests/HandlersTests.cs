@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using SS14.Labeller.Helpers;
 
-namespace SS14.Labeller.Tests;
+namespace SS14.Labeller.Tests.IntegrationTests;
 
 [ExcludeFromCodeCoverage]
-public partial class IntegrationTests
+public partial class HandlersTests
 {
     public const string HookSecret = "asdasdasdasdasdasdasdadsadad";
 

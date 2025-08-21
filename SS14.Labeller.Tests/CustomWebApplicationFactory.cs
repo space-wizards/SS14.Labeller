@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using FluentMigrator.Runner;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
@@ -10,6 +9,7 @@ using NSubstitute;
 using SS14.Labeller.DiscourseApi;
 using SS14.Labeller.GitHubApi;
 using SS14.Labeller.Repository;
+using SS14.Labeller.Tests.IntegrationTests;
 
 namespace SS14.Labeller.Tests;
 
@@ -41,7 +41,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 { "Discourse:Username", "aw" },
                 { "Discourse:DiscussionCategoryId", "42" },
                 { "Discourse:Url", "http://wa.wa" },
-                { "GitHub:WebhookSecret", IntegrationTests.HookSecret },
+                { "GitHub:WebhookSecret", HandlersTests.HookSecret },
                 { "GitHub:Token", "test-test" },
             });
         });

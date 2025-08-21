@@ -14,7 +14,7 @@ public class FindTopicQuery : DatabaseQueryBase<int?>
     public override async Task<int?> Query(DbConnection connection, CancellationToken ct)
     {
         var cd = GetCommand(ct);
-        return await connection.QueryFirstOrDefaultAsync<int>(cd);
+        return await connection.QueryFirstOrDefaultAsync<int?>(cd);
     }
 
     private const string Sql = $"""

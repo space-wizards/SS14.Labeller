@@ -1,14 +1,14 @@
-﻿using NSubstitute;
-using NUnit.Framework;
-using SS14.Labeller.Models;
-using System.Net;
+﻿using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using NSubstitute;
+using NUnit.Framework;
 using SS14.Labeller.Labelling.Labels;
+using SS14.Labeller.Models;
 
-namespace SS14.Labeller.Tests;
+namespace SS14.Labeller.Tests.IntegrationTests;
 
-public partial class IntegrationTests
+public partial class HandlersTests
 {
     [Test]
     public async Task Issue_Created_AddedUntriagedLabel()
