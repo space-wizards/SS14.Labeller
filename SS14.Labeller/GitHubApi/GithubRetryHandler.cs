@@ -43,10 +43,8 @@ public sealed class GithubRetryHandler(HttpMessageHandler innerHandler, IOptions
         {
             try
             {
-                response = await base.SendAsync(request, cancellationToken);
                 i++;
-                if (response.IsSuccessStatusCode)
-                    return response;
+                response = await base.SendAsync(request, cancellationToken);
             }
             catch (HttpRequestException)
             {
@@ -60,13 +58,15 @@ public sealed class GithubRetryHandler(HttpMessageHandler innerHandler, IOptions
 
                 throw;
             }
+            if (response.IsSuccessStatusCode)
+                return response;
 
             if (i < maxRetry)
             {
                 var waitTime = CalculateNextRequestTime(response, i);
                 await Task.Delay(waitTime, cancellationToken);
             }
-        } while (response?.IsSuccessStatusCode == true && i < maxRetry);
+        } while (response?.IsSuccessStatusCode != true && i < maxRetry);
 
         return response!;
     }
