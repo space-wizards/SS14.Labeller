@@ -36,24 +36,39 @@ public sealed class GithubRetryHandler(HttpMessageHandler innerHandler, IOptions
         CancellationToken cancellationToken
     )
     {
-        HttpResponseMessage response;
+        HttpResponseMessage? response = null;
         var i = 0;
         var maxRetry = githubConfig.CurrentValue.MaxRetryAttempt;
         do
         {
-            response = await base.SendAsync(request, cancellationToken);
-            if (response.IsSuccessStatusCode)
-                return response;
+            try
+            {
+                response = await base.SendAsync(request, cancellationToken);
+                i++;
+                if (response.IsSuccessStatusCode)
+                    return response;
+            }
+            catch (HttpRequestException)
+            {
+                if (i < maxRetry)
+                {
+                    var waitTime = ExponentialBackoff(i);
+                    await Task.Delay(waitTime, cancellationToken);
 
-            i++;
+                    continue;
+                }
+
+                throw;
+            }
+
             if (i < maxRetry)
             {
                 var waitTime = CalculateNextRequestTime(response, i);
                 await Task.Delay(waitTime, cancellationToken);
             }
-        } while (!response.IsSuccessStatusCode && i < maxRetry);
+        } while (response?.IsSuccessStatusCode == true && i < maxRetry);
 
-        return response;
+        return response!;
     }
 
     /// <summary>
