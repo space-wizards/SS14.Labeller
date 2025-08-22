@@ -31,6 +31,8 @@ public class Program
 
         app.MapGet("/", () => Results.Ok("Nik is a cat!"));
 
+        app.MapHealthChecks("/health");
+
         app.UseMiddleware<GitHubWebhookAuthorizationMiddleware>();
         app.MapPost(
             "/webhook",
