@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http.Headers;
+using Microsoft.Extensions.Options;
+using SS14.Labeller.Configuration;
 
 namespace SS14.Labeller.GitHubApi;
 
@@ -13,12 +15,12 @@ namespace SS14.Labeller.GitHubApi;
 /// <br/> <see href="https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api?apiVersion=2022-11-28">Rate limit information</see>
 /// </summary>
 /// <remarks> This was designed for the 2022-11-28 version of the API. </remarks>
-public sealed class GithubRetryHandler(HttpMessageHandler innerHandler, int maxRetries, ILogger<GithubRetryHandler> logger) : DelegatingHandler(innerHandler)
+public sealed class GithubRetryHandler(HttpMessageHandler innerHandler, IOptionsMonitor<GitHubConfig> githubConfig, ILogger<GithubRetryHandler> logger) : DelegatingHandler(innerHandler)
 {
     private const int MaxWaitSeconds = 32;
 
     /// Extra buffer time (In seconds) after getting rate limited we don't make the request exactly when we get more credits.
-    private const long ExtraBufferTime = 1L;
+    private static readonly TimeSpan ExtraBufferTime = TimeSpan.FromSeconds(1);
 
     #region Headers
 
@@ -36,6 +38,7 @@ public sealed class GithubRetryHandler(HttpMessageHandler innerHandler, int maxR
     {
         HttpResponseMessage response;
         var i = 0;
+        var maxRetry = githubConfig.CurrentValue.MaxRetryAttempt;
         do
         {
             response = await base.SendAsync(request, cancellationToken);
@@ -43,12 +46,12 @@ public sealed class GithubRetryHandler(HttpMessageHandler innerHandler, int maxR
                 return response;
 
             i++;
-            if (i < maxRetries)
+            if (i < maxRetry)
             {
                 var waitTime = CalculateNextRequestTime(response, i);
                 await Task.Delay(waitTime, cancellationToken);
             }
-        } while (!response.IsSuccessStatusCode && i < maxRetries);
+        } while (!response.IsSuccessStatusCode && i < maxRetry);
 
         return response;
     }
@@ -71,7 +74,7 @@ public sealed class GithubRetryHandler(HttpMessageHandler innerHandler, int maxR
         {
             // Retry after header
             if (TryGetHeaderAsLong(headers, RetryAfterHeader, out var retryAfterSeconds))
-                return TimeSpan.FromSeconds(retryAfterSeconds.Value + ExtraBufferTime);
+                return TimeSpan.FromSeconds(retryAfterSeconds.Value) + ExtraBufferTime;
 
             // Reset header (Tells us when we get more api credits)
             if (TryGetHeaderAsLong(headers, RemainingHeader, out var remainingRequests)
@@ -84,7 +87,7 @@ public sealed class GithubRetryHandler(HttpMessageHandler innerHandler, int maxR
                     response.StatusCode,
                     delayTime
                 );
-                return TimeSpan.FromSeconds(delayTime + ExtraBufferTime);
+                return TimeSpan.FromSeconds(delayTime) + ExtraBufferTime;
             }
         }
 
