@@ -40,7 +40,7 @@ public static class Registry
             client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SS14.Labeller", "1.0"));
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", githubConfig.Token);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
-        });
+        }).AddHttpMessageHandler<GithubRetryHandler>();
 
         var discourseStartupConfig = new DiscourseConfig();
         configuration.Bind(DiscourseConfig.Name, discourseStartupConfig);
