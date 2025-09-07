@@ -6,12 +6,10 @@ public sealed class DatabaseMigration
 {
     public static void MigrateDatabase(IServiceProvider sp)
     {
-        using (var scope = sp.CreateScope())
-        {
-            // Put the database update into a scope to ensure
-            // that all resources will be disposed.
-            UpdateDatabase(scope.ServiceProvider);
-        }
+        using var scope = sp.CreateScope();
+        // Put the database update into a scope to ensure
+        // that all resources will be disposed.
+        UpdateDatabase(scope.ServiceProvider);
     }
 
     /// <summary> Update the database </summary>

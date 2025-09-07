@@ -77,17 +77,16 @@ public static class Registry
         );
 
         var connectionString = configuration.GetConnectionString("Default")
-                               ?? "Data Source=Application.db";
+                               ?? throw new InvalidOperationException(
+                                   "Failed to find 'Default' connection string " 
+                                   + "from application configuration for database initialization."
+                                );
 
         service.AddFluentMigratorCore()
                .ConfigureRunner(rb => rb
-                                      // Add SQLite support to FluentMigrator
                                       .AddPostgres()
-                                      // Set the connection string
                                       .WithGlobalConnectionString(connectionString)
-                                      // Define the assembly containing the migrations, maintenance migrations and other customizations
                                       .ScanIn(typeof(DatabaseMigration).Assembly).For.All())
-               // Enable logging to console in the FluentMigrator way
                .AddLogging(lb => lb.AddFluentMigratorConsole());
     }
 }

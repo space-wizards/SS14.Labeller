@@ -10,6 +10,7 @@ using SS14.Labeller.DiscourseApi;
 using SS14.Labeller.GitHubApi;
 using SS14.Labeller.Repository;
 using SS14.Labeller.Tests.IntegrationTests;
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
 namespace SS14.Labeller.Tests;
 

@@ -8,7 +8,10 @@ public class RepositoryBase(IConfiguration configuration)
     protected DbConnection OpenConnection()
     {
         var connectionString = configuration.GetConnectionString("Default") 
-                               ?? "Data Source=Application.db";
+                               ?? throw new InvalidOperationException(
+                                   "Failed to find 'Default' connection string "
+                                   + "from application configuration for repository."
+                               ); ;
         var con = new NpgsqlConnection(connectionString);
         con.Open();
         return con;

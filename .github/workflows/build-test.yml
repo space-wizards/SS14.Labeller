@@ -12,7 +12,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:15 # Or your desired PostgreSQL version
+        image: postgres:16 # Or your desired PostgreSQL version
         env:
           POSTGRES_USER: labeller_user
           POSTGRES_PASSWORD: example
