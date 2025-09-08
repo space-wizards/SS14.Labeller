@@ -1,10 +1,8 @@
 ﻿using FluentMigrator;
-using System.Diagnostics.CodeAnalysis;
 
 namespace SS14.Labeller.Database.Migrations;
 
 [Migration(20250818113000)]
-[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)]
 public class CreateTableDiscourseTopics : Migration
 {
     public const string TableName = "discussions";
