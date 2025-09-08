@@ -1,0 +1,13 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgresql
+    restart: always
+    environment:
+      POSTGRES_DB: labeller
+      POSTGRES_USER: labeller_user
+      POSTGRES_PASSWORD: example
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./build/database-init/init.sql:/docker-entrypoint-initdb.d/init.sql 

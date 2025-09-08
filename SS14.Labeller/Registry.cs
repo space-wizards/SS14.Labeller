@@ -7,6 +7,7 @@ using SS14.Labeller.Handlers;
 using SS14.Labeller.Labelling;
 using SS14.Labeller.Repository;
 using System.Net.Http.Headers;
+using FluentMigrator.Runner;
 
 namespace SS14.Labeller;
 
@@ -70,11 +71,22 @@ public static class Registry
 
         service.AddSingleton<IDiscourseTopicsRepository, DiscourseTopicsRepository>();
 
-        service.AddHostedService<DatabaseMigrationApplyingBackgroundService>();
-
         service.AddSingleton<IReadOnlyDictionary<Type, RequestHandlerBase>>(
             sp => sp.GetServices<RequestHandlerBase>()
                     .ToDictionary(x => x.CanHandleType)
         );
+
+        var connectionString = configuration.GetConnectionString("Default")
+                               ?? throw new InvalidOperationException(
+                                   "Failed to find 'Default' connection string " 
+                                   + "from application configuration for database initialization."
+                                );
+
+        service.AddFluentMigratorCore()
+               .ConfigureRunner(rb => rb
+                                      .AddPostgres()
+                                      .WithGlobalConnectionString(connectionString)
+                                      .ScanIn(typeof(DatabaseMigration).Assembly).For.All())
+               .AddLogging(lb => lb.AddFluentMigratorConsole());
     }
 }

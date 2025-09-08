@@ -1,5 +1,5 @@
 ﻿using System.Data.Common;
-using Microsoft.Data.Sqlite;
+using Npgsql;
 
 namespace SS14.Labeller.Repository;
 
@@ -8,8 +8,11 @@ public class RepositoryBase(IConfiguration configuration)
     protected DbConnection OpenConnection()
     {
         var connectionString = configuration.GetConnectionString("Default") 
-                               ?? "Data Source=Application.db";
-        var con = new SqliteConnection(connectionString);
+                               ?? throw new InvalidOperationException(
+                                   "Failed to find 'Default' connection string "
+                                   + "from application configuration for repository."
+                               ); ;
+        var con = new NpgsqlConnection(connectionString);
         con.Open();
         return con;
     }

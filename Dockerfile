@@ -18,7 +18,7 @@ RUN echo "Building for platform: $TARGETPLATFORM" \
     "linux/arm64") export RID=linux-arm64 ;; \
     *) echo "Unsupported TARGETPLATFORM: $TARGETPLATFORM" && exit 1 ;; \
     esac \
-    && dotnet publish -c Release -r $RID --self-contained true /p:PublishAot=true -o /app
+    && dotnet publish -c Release -r $RID --self-contained true -o /app
 
 FROM debian:bookworm-slim AS final
 WORKDIR /app

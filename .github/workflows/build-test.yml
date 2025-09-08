@@ -10,6 +10,21 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16 # Or your desired PostgreSQL version
+        env:
+          POSTGRES_USER: labeller_user
+          POSTGRES_PASSWORD: example
+          POSTGRES_DB: labeller
+        ports:
+        - 5432:5432 # Expose the PostgreSQL port
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET
@@ -20,5 +35,10 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build --configuration Release --no-restore
+    - name: Create default database
+      run: |
+        psql -h localhost -U labeller_user -d postgres -c "SELECT 'CREATE DATABASE labeller' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'labeller');"
+      env:
+        PGPASSWORD: example
     - name: SS14.Labeller.Tests
       run: dotnet test SS14.Labeller.Tests/SS14.Labeller.Tests.csproj -v n

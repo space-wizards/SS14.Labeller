@@ -44,6 +44,7 @@ public enum PullRequestEventType
     Opened,
     ReviewRequested
 }
+
 public class PullRequest
 {
     public int Number { get; set; }

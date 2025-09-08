@@ -19,7 +19,8 @@ public class DiscourseTopicsRepository(IConfiguration configuration)
 
     public async Task<bool> HasTopic(string repoOwner, string repoName, int issueNumber, CancellationToken ct)
     {
-        return (await FindTopicIdForDiscussion(repoOwner, repoName, issueNumber, ct)).HasValue;
+        var foundId = await FindTopicIdForDiscussion(repoOwner, repoName, issueNumber, ct);
+        return foundId.HasValue;
     }
 
     public async Task Add(string owner, string name, int issueNumber, int topicId, CancellationToken ct)
