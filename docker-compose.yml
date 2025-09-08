@@ -1,13 +1,12 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: postgresql
-    restart: always
-    environment:
-      POSTGRES_DB: labeller
-      POSTGRES_USER: labeller_user
-      POSTGRES_PASSWORD: example
+  ss14-labeller:
+    image: ghcr.io/space-wizards/ss14.labeller:latest
+    container_name: ss14-labeller
+    restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "5000:5000"
+    environment:
+      ASPNETCORE_URLS: http://+:5000
     volumes:
-      - ./build/database-init/init.sql:/docker-entrypoint-initdb.d/init.sql 
+      - ./appsettings.json:/app/appsettings.json
+      - ./data:/app/data

@@ -7,8 +7,6 @@ using SS14.Labeller.Handlers;
 using SS14.Labeller.Middlewares;
 using SS14.Labeller.Models;
 
-[module:DapperAot]
-
 namespace SS14.Labeller;
 
 public class Program

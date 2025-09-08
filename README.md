@@ -56,7 +56,7 @@ To set the port, use the `ASPNETCORE_URLS` environment variable, e.g. `ASPNETCOR
 To build application for release and deployment, use the following command:
 
 ```bash
-dotnet publish ./SS14.Labeller -c Release -r <platform ex. win-x64> --self-contained true /p:PublishAot=true
+dotnet publish ./SS14.Labeller -c Release -r <platform ex. win-x64> --self-contained true
 ```
 
 Running the application is just like any other executable. On Unix systems, you may need to set the executable bit on the binary.
@@ -70,7 +70,7 @@ The token must have the `Issues` and `Pull requests` scopes enabled for read and
 
 To run application locally you can launch run it as any other dotnet application. To set up its dependencies (database) locally you can run docker-compose:
 ```
-docker-compose up -d
+docker compose -f docker-compose-debug.yml up -d
 ```
 This will run local postgres to which labeller will try attach upon launching and when running integration tests.
 
@@ -118,11 +118,3 @@ Now we need set up the repository. Create new repository or use an existing one.
 4. Select content-type ```application/json```
 5. Input any "secret" word or phrase into the Secret field.
 6. In the block 'Which events would you like to trigger this webhook?' select 'Let me select individual events' and check the events as listed in the Usage section.
-
-### Debugging behaviour in container
-
-To debug app behaviour in container environment you can use docker-compose-debug.yaml (it will pick latest version of labeller app from image repository):
-```
-docker compose -f docker-compose-debug.yml up -d
-```
-Or build Dockerfile yourself to try out your local code.
