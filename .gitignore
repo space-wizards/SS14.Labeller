@@ -4,6 +4,7 @@ obj/
 riderModule.iml
 /_ReSharper.Caches/
 /.vs/**
+/.idea
 appsettings.Secret.json
 /SS14.Labeller/Application.db
 /SS14.Labeller/data/**

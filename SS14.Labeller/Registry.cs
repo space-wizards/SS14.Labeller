@@ -67,7 +67,8 @@ public static class Registry
         service.AddSingleton<RequestHandlerBase, LabelIssueHandler>();
         service.AddSingleton<RequestHandlerBase, LabelPullRequestReviewHandler>();
         service.AddSingleton<RequestHandlerBase, LabelPullRequestHandler>();
-
+        service.AddSingleton<GitHubWebhookHandlerService>();
+        
         service.AddSingleton<IDiscourseTopicsRepository, DiscourseTopicsRepository>();
 
         service.AddHostedService<DatabaseMigrationApplyingBackgroundService>();
