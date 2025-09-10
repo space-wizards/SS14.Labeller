@@ -54,6 +54,9 @@ public class LabelPullRequestHandler(
             await labelManager.EnsureLabeled(request, sizeLabel, ct);
         }
 
+        if(!ContainsLabelsStartingWith(labels, "A:", "T:", "P:"))
+            await labelManager.EnsureLabeled(request, StatusLabel.Untriaged, ct);
+
         var changedFiles = await client.GetChangedFiles(repository, prNumber, ct);
 
         await EnsureChangesLabels(ChangesLabel.Sprites, ["**/*.rsi/*.png"], request, changedFiles, ct: ct);
@@ -154,9 +157,6 @@ public class LabelPullRequestHandler(
 
     private async Task OnOpened(PullRequestEvent request, CancellationToken ct, string?[] labels, PullRequest pr, GithubRepo repository)
     {
-        if (labels.Length == 0)
-            await labelManager.EnsureLabeled(request, StatusLabel.Untriaged, ct);
-
         var targetBranch = pr.Base.Ref;
         if (targetBranch == "stable")
             await labelManager.EnsureLabeled(request, BranchLabel.Stable, ct);
@@ -168,5 +168,19 @@ public class LabelPullRequestHandler(
             await labelManager.EnsureLabeled(request, StatusLabel.Approved, ct);
 
         await labelManager.EnsureLabeled(request, StageOfWorkLabel.RequireReview, ct);
+    }
+
+    private static bool ContainsLabelsStartingWith(IReadOnlyCollection<string?> labels, params string[] requiredStartedWith)
+    {
+        if (labels.Count == 0)
+            return false;
+
+        foreach (var startsWith in requiredStartedWith)
+        {
+            if (labels.All(x => x?.StartsWith(startsWith) != true))
+                return false;
+        }
+
+        return true;
     }
 }
