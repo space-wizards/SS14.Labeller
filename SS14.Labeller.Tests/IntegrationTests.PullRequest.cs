@@ -28,7 +28,29 @@ public partial class IntegrationTests
             $"Invalid response status - {result.StatusCode}, response text: \r\n{respText}."
         );
     }
-    
+
+    [Test]
+    public async Task PullRequest_WithoutATPLabels_MarksUntriaged()
+    {
+        // Arrange
+        const string fileName = "pull_request_missing_a_and_t.json";
+        var requestContent = await CreateRequestContent(fileName, "pull_request");
+
+        // Act
+        var result = await _client.PostAsync("/webhook", requestContent);
+
+        // Assert
+        await _applicationFactory.GitHubApiClient
+                                 .Received()
+                                 .AddLabel(
+                                     Arg.Is<GithubRepo>(x => x.Name == "SS14.Labeller" && x.Owner.Login == "Fildrance"),
+                                     4,
+                                     StatusLabel.Untriaged,
+                                     Arg.Any<CancellationToken>()
+                                 );
+    }
+
+
     [Test]
     public async Task PullRequest_ToStaging_ApplyStagingBranchLabel()
     {
