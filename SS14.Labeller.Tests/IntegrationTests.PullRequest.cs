@@ -50,7 +50,6 @@ public partial class IntegrationTests
                                  );
     }
 
-
     [Test]
     public async Task PullRequest_ToStaging_ApplyStagingBranchLabel()
     {
