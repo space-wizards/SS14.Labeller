@@ -18,6 +18,8 @@ public class DiscourseConfig
     public string Url { get; set; } = string.Empty;
 
     public DiscourseTagConfig Tagging { get; set; } = new DiscourseTagConfig();
+
+    public int RetryAttempts { get; set; } = 5;
 }
 
 public class DiscourseTagConfig
