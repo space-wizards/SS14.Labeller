@@ -10,4 +10,6 @@ public class GitHubConfig
     public string WebhookSecret { get; set; } = string.Empty;
     [Required]
     public string Token { get; set; } = string.Empty;
+
+    public int MaxRetryAttempt { get; set; } = 5;
 }

@@ -8,6 +8,8 @@ using SS14.Labeller.Labelling;
 using SS14.Labeller.Repository;
 using System.Net.Http.Headers;
 using SS14.Labeller.HealthChecks;
+using Polly;
+using Polly.Extensions.Http;
 
 namespace SS14.Labeller;
 
@@ -41,7 +43,7 @@ public static class Registry
             client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SS14.Labeller", "1.0"));
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", githubConfig.Token);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
-        });
+        }).AddHttpMessageHandler<GithubRetryHandler>();
 
         var discourseStartupConfig = new DiscourseConfig();
         configuration.Bind(DiscourseConfig.Name, discourseStartupConfig);
@@ -56,7 +58,8 @@ public static class Registry
                 client.DefaultRequestHeaders.Add("Api-Key", discourseConfig.ApiKey);
                 client.DefaultRequestHeaders.Add("Api-Username", discourseConfig.Username);
                 client.BaseAddress = new Uri(discourseConfig.Url);
-            });
+            }).SetHandlerLifetime(TimeSpan.FromMinutes(5))
+            .AddPolicyHandler((sp, message) => GetDiscourseRetryPolicy(sp));
         }
         else
         {
@@ -68,7 +71,8 @@ public static class Registry
         service.AddSingleton<RequestHandlerBase, LabelIssueHandler>();
         service.AddSingleton<RequestHandlerBase, LabelPullRequestReviewHandler>();
         service.AddSingleton<RequestHandlerBase, LabelPullRequestHandler>();
-
+        service.AddSingleton<GitHubWebhookHandlerService>();
+        
         service.AddSingleton<IDiscourseTopicsRepository, DiscourseTopicsRepository>();
 
         service.AddHostedService<DatabaseMigrationApplyingBackgroundService>();
@@ -83,5 +87,14 @@ public static class Registry
                    "GitHub API Key",
                    tags: ["github", "api-key"]
                 );
+    }
+
+    private static IAsyncPolicy<HttpResponseMessage> GetDiscourseRetryPolicy(IServiceProvider sp)
+    {
+        var options = sp.GetRequiredService<IOptionsMonitor<DiscourseConfig>>();
+        return HttpPolicyExtensions
+               .HandleTransientHttpError()
+               .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.NotFound)
+               .WaitAndRetryAsync(options.CurrentValue.RetryAttempts, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
     }
 }
