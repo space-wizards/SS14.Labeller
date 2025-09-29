@@ -87,6 +87,8 @@ public static class Registry
                    "GitHub API Key",
                    tags: ["github", "api-key"]
                 );
+
+        service.AddMemoryCache();
     }
 
     private static IAsyncPolicy<HttpResponseMessage> GetDiscourseRetryPolicy(IServiceProvider sp)

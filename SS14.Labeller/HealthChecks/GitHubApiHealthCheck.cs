@@ -1,15 +1,29 @@
-﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
+﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using SS14.Labeller.GitHubApi;
 
 namespace SS14.Labeller.HealthChecks;
 
-
-public class GitHubApiKeyHealthCheck(IHttpClientFactory httpClientFactory) : IHealthCheck
+public class GitHubApiKeyHealthCheck(IHttpClientFactory httpClientFactory, IMemoryCache cache) : IHealthCheck
 {
     public async Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context,
         CancellationToken cancellationToken = default
     )
+    {
+        var result = await cache.GetOrCreateAsync(
+            "GHKeyHealthCheck", 
+            async entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(5);
+                return await CheckHealthAsyncInternal(cancellationToken);
+            }
+        );
+
+        return result;
+    }
+
+    private async Task<HealthCheckResult> CheckHealthAsyncInternal(CancellationToken cancellationToken)
     {
         try
         {
@@ -32,11 +46,11 @@ public class GitHubApiKeyHealthCheck(IHttpClientFactory httpClientFactory) : IHe
         }
         catch (HttpRequestException ex)
         {
-            return HealthCheckResult.Unhealthy($"Failed to connect to GitHub API: {ex.Message}");
+            return HealthCheckResult.Unhealthy("Failed to connect to GitHub API", exception: ex);
         }
         catch (Exception ex)
         {
-            return HealthCheckResult.Unhealthy($"An error occurred during GitHub API key health check: {ex.Message}");
+            return HealthCheckResult.Unhealthy("An unexpected error occurred during GitHub API key health check", exception: ex);
         }
     }
 }
