@@ -35,10 +35,5 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build --configuration Release --no-restore
-    - name: Create default database
-      run: |
-        psql -h localhost -U postgres -d labeller -W postgres -c "SELECT 'CREATE DATABASE labeller' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'labeller');"
-      env:
-        PGPASSWORD: example
     - name: SS14.Labeller.Tests
       run: dotnet test SS14.Labeller.Tests/SS14.Labeller.Tests.csproj -v n
