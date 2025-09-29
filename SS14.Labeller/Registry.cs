@@ -7,7 +7,7 @@ using SS14.Labeller.Handlers;
 using SS14.Labeller.Labelling;
 using SS14.Labeller.Repository;
 using System.Net.Http.Headers;
-using FluentMigrator.Runner;
+using Microsoft.EntityFrameworkCore;
 using Polly;
 using Polly.Extensions.Http;
 
@@ -80,18 +80,19 @@ public static class Registry
                     .ToDictionary(x => x.CanHandleType)
         );
 
+
         var connectionString = configuration.GetConnectionString("Default")
                                ?? throw new InvalidOperationException(
-                                   "Failed to find 'Default' connection string " 
+                                   "Failed to find 'Default' connection string "
                                    + "from application configuration for database initialization."
-                                );
+                               );
 
-        service.AddFluentMigratorCore()
-               .ConfigureRunner(rb => rb
-                                      .AddPostgres()
-                                      .WithGlobalConnectionString(connectionString)
-                                      .ScanIn(typeof(DatabaseMigration).Assembly).For.All())
-               .AddLogging(lb => lb.AddFluentMigratorConsole());
+        service.AddPooledDbContextFactory<CustomDbContext>(
+            optsBuilder => optsBuilder.UseNpgsql(connectionString)
+                                      .UseSnakeCaseNamingConvention()
+        );
+
+        service.AddSingleton<IContextConfiguration, DiscourseEntitiesContextConfiguration>();
     }
 
     private static IAsyncPolicy<HttpResponseMessage> GetDiscourseRetryPolicy(IServiceProvider sp)

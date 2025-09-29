@@ -1,4 +1,4 @@
-﻿using FluentMigrator.Runner;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace SS14.Labeller.Database;
 
@@ -15,10 +15,12 @@ public sealed class DatabaseMigration
     /// <summary> Update the database </summary>
     private static void UpdateDatabase(IServiceProvider serviceProvider)
     {
-        // Instantiate the runner
-        var runner = serviceProvider.GetRequiredService<IMigrationRunner>();
+        var contextFactory = serviceProvider.GetRequiredService<IDbContextFactory<CustomDbContext>>();
+        using var context = contextFactory.CreateDbContext();
+        var db = context.Database;
 
-        // Execute the migrations
-        runner.MigrateUp();
+        db.EnsureCreated();
+
+        db.Migrate();
     }
 }
