@@ -14,8 +14,8 @@ jobs:
       postgres:
         image: postgres:16 # Or your desired PostgreSQL version
         env:
-          POSTGRES_USER: labeller_user
-          POSTGRES_PASSWORD: example
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
           POSTGRES_DB: labeller
         ports:
         - 5432:5432 # Expose the PostgreSQL port

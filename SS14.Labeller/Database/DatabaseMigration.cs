@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace SS14.Labeller.Database;
 
@@ -17,10 +18,6 @@ public sealed class DatabaseMigration
     {
         var contextFactory = serviceProvider.GetRequiredService<IDbContextFactory<CustomDbContext>>();
         using var context = contextFactory.CreateDbContext();
-        var db = context.Database;
-
-        db.EnsureCreated();
-
-        db.Migrate();
+        context.Database.Migrate();
     }
 }

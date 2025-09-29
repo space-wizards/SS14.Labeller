@@ -5,8 +5,8 @@ services:
     restart: always
     environment:
       POSTGRES_DB: labeller
-      POSTGRES_USER: labeller_user
-      POSTGRES_PASSWORD: example
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
     volumes:
