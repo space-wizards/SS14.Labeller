@@ -1,22 +1,23 @@
-﻿using SS14.Labeller.GitHubApi;
+﻿using MessagePipe;
+using SS14.Labeller.GitHubApi;
 using SS14.Labeller.Labelling.Labels;
 using SS14.Labeller.Models;
 
 namespace SS14.Labeller.Handlers;
 
-public class LabelIssueHandler(IGitHubApiClient client) : RequestHandlerBase<IssuesEvent>
+public class LabelIssueHandler(IGitHubApiClient client) : IAsyncMessageHandler<IssuesEvent>
 {
     /// <inheritdoc />
-    protected override async Task HandleInternal(IssuesEvent request, CancellationToken ct)
+    public async ValueTask HandleAsync(IssuesEvent message, CancellationToken ct)
     {
-        var action = request.Action;
+        var action = message.Action;
         if (action == "opened")
         {
-            var number = request.Issue.Number;
-            var labels = request.Issue.Labels;
+            var number = message.Issue.Number;
+            var labels = message.Issue.Labels;
 
             if (labels.Length == 0)
-                await client.AddLabel(request.Repository, number, StatusLabel.Untriaged, ct);
+                await client.AddLabel(message.Repository, number, StatusLabel.Untriaged, ct);
         }
     }
 }
