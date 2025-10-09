@@ -2,7 +2,9 @@
 
 namespace SS14.Labeller.DiscourseApi;
 
-public class DummyDiscourseClient : IDiscourseClient
+#pragma warning disable CS9113 // Parameter is unread.
+public class DummyDiscourseClient(HttpClient _) : IDiscourseClient
+#pragma warning restore CS9113 // Parameter is unread.
 {
     public Task<DiscourseCreatedPost> CreateTopic(int category, string body, string title, CancellationToken ct)
         => Task.FromResult(new DiscourseCreatedPost()

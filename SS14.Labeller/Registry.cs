@@ -44,6 +44,7 @@ public static class Registry
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", githubConfig.Token);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
         }).AddHttpMessageHandler<GithubRetryHandler>();
+        service.AddTransient<GithubRetryHandler>();
 
         var discourseStartupConfig = new DiscourseConfig();
         configuration.Bind(DiscourseConfig.Name, discourseStartupConfig);

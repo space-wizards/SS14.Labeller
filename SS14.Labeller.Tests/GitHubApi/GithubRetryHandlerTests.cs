@@ -36,37 +36,37 @@ public class GithubRetryHandlerTests
     public void SendAsync_SuccessfulRequest()
     {
         // Arrange
-        _mockInnerHandler.SendMock(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>())
+        _mockInnerHandler.Send(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>())
                          .Returns(Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.OK }));
 
-        var handler = new GithubRetryHandler(_mockInnerHandler, _config, _logger);
+        var handler = new GithubRetryHandler(_config, _logger) { InnerHandler = _mockInnerHandler };
         var httpClient = new HttpClient(handler);
 
         // Act
         var result = httpClient.SendAsync(_httpRequestMessage, default).Result;
 
         // Assert
-        Assert.That(result.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
     }
 
     [Test]
     public void SendAsync_NetworkErrorRetries()
     {
         // Arrange
-        _mockInnerHandler.SendMock(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>())
+        _mockInnerHandler.Send(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>())
                          .Returns(
-                             _=> throw new HttpRequestException(HttpRequestError.ConnectionError), 
-                             _=>  Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.OK })
+                             _ => throw new HttpRequestException(HttpRequestError.ConnectionError),
+                             _ => Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.OK })
                         );
 
-        var handler = new GithubRetryHandler(_mockInnerHandler, _config, _logger);
+        var handler = new GithubRetryHandler(_config, _logger) { InnerHandler = _mockInnerHandler };
         var httpClient = new HttpClient(handler);
 
         // Act
         var result = httpClient.SendAsync(_httpRequestMessage, default).Result;
 
         // Assert
-        Assert.That(result.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
     }
 
     [Test]
@@ -84,10 +84,10 @@ public class GithubRetryHandlerTests
 
         var response2 = new HttpResponseMessage(HttpStatusCode.OK);
 
-        _mockInnerHandler.SendMock(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>())
+        _mockInnerHandler.Send(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>())
                          .Returns(response1, response2);
 
-        var handler = new GithubRetryHandler(_mockInnerHandler, _config, _logger);
+        var handler = new GithubRetryHandler(_config, _logger) { InnerHandler = _mockInnerHandler };
         var httpClient = new HttpClient(handler);
 
         // Act
@@ -103,12 +103,12 @@ public class GithubRetryHandlerTests
     public void SendAsync_MaxRetryExceeded()
     {
         // Arrange
-        _mockInnerHandler.SendMock(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>())
+        _mockInnerHandler.Send(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>())
                          .ThrowsAsync(new HttpRequestException(HttpRequestError.ConnectionError));
 
         _gitHubConfig.MaxRetryAttempt = 2;
 
-        var handler = new GithubRetryHandler(_mockInnerHandler, _config, _logger);
+        var handler = new GithubRetryHandler(_config, _logger) { InnerHandler = _mockInnerHandler };
         var httpClient = new HttpClient(handler);
 
         // Act & Assert
@@ -125,10 +125,10 @@ public class MockHttpMessageHandler : HttpMessageHandler
 {
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        return SendMock(request, cancellationToken);
+        return Send(request, cancellationToken);
     }
 
-    public virtual Task<HttpResponseMessage> SendMock(HttpRequestMessage request, CancellationToken cancellationToken)
+    public virtual Task<HttpResponseMessage> Send(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }
