@@ -12,12 +12,8 @@ public static class StatusMessages
         """
         {link}
         
-        [poll type=regular results=always public=true chartType=bar groups=maintainers]
-        # What to do?
-        * Merge
-        * Close
-        * Other (Comment)
-        [/poll]
+        Please use this thread to discuss the merits of the linked PR. Maintainers are expected to 
+        weigh the entire discussion, to the best of their ability, when making resolutions about the PR.
         """;
 
     public const string StartedDiscussion =
