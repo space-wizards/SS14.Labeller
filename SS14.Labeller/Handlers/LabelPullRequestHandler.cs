@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.FileSystemGlobbing;
+﻿using MessagePipe;
+using Microsoft.Extensions.FileSystemGlobbing;
 using Microsoft.Extensions.Options;
 using SS14.Labeller.Configuration;
 using SS14.Labeller.DiscourseApi;
@@ -17,54 +18,55 @@ public class LabelPullRequestHandler(
     IDiscourseTopicsRepository topicsRepository,
     ILabelManager labelManager,
     IOptions<DiscourseConfig> config
-) : RequestHandlerBase<PullRequestEvent>
+) : IAsyncMessageHandler<PullRequestEvent>
 {
     private readonly DiscourseConfig _discourseConfig = config.Value;
 
     /// <inheritdoc />
-    protected override async Task HandleInternal(PullRequestEvent request, CancellationToken ct)
+    public async ValueTask HandleAsync(PullRequestEvent message, CancellationToken ct)
+
     {
-        var pr = request.PullRequest;
+        var pr = message.PullRequest;
 
         var prNumber = pr.Number;
 
-        var repoOwner = request.Repository.Owner.Login;
-        var repoName = request.Repository.Name;
+        var repoOwner = message.Repository.Owner.Login;
+        var repoName = message.Repository.Name;
 
         var labels = pr.Labels
                        .Select(x => x.Name)
                        .ToArray();
 
         // basic labels
-        var repository = request.Repository;
+        var repository = message.Repository;
 
-        await (request.EventType switch
+        await (message.EventType switch
         {
-            PullRequestEventType.Labelled => OnLabelAdd(request, ct, repoOwner, repoName, prNumber, repository),
-            PullRequestEventType.ClosedRejected => OnClosed(ct, repoOwner, repoName, prNumber),
-            PullRequestEventType.ClosedMerged => OnMerged(ct, repoOwner, repoName, prNumber, labels, repository),
-            PullRequestEventType.Opened => OnOpened(request, ct, labels, pr, repository),
-            PullRequestEventType.ReviewRequested => OnReviewRequested(request, ct, repository),
+            PullRequestEventType.Labelled => OnLabelAdd(message, repoOwner, repoName, prNumber, repository, ct),
+            PullRequestEventType.ClosedRejected => OnClosed(repoOwner, repoName, prNumber, ct),
+            PullRequestEventType.ClosedMerged => OnMerged(repoOwner, repoName, prNumber, labels, repository, ct),
+            PullRequestEventType.Opened => OnOpened(message, labels, pr, repository, ct),
+            PullRequestEventType.ReviewRequested => OnReviewRequested(message, repository, ct),
             _ => Task.CompletedTask
         });
 
         var totalDiff = pr.Additions + pr.Deletions;
         if (SizeLabel.TryGetLabelFor(totalDiff, out var sizeLabel))
         {
-            await labelManager.EnsureLabeled(request, sizeLabel, ct);
+            await labelManager.EnsureLabeled(message, sizeLabel, ct);
         }
 
         if(!ContainsLabelsStartingWith(labels, "A:", "T:", "P:"))
-            await labelManager.EnsureLabeled(request, StatusLabel.Untriaged, ct);
+            await labelManager.EnsureLabeled(message, StatusLabel.Untriaged, ct);
 
         var changedFiles = await client.GetChangedFiles(repository, prNumber, ct);
 
-        await EnsureChangesLabels(ChangesLabel.Sprites, ["**/*.rsi/*.png"], request, changedFiles, ct: ct);
-        await EnsureChangesLabels(ChangesLabel.Map, ["Resources/Maps/**/*.yml", "Resources/Prototypes/Maps/**/*.yml"], request, changedFiles, ct: ct);
-        await EnsureChangesLabels(ChangesLabel.Ui, ["**/*.xaml*"], request, changedFiles, ct:ct);
-        await EnsureChangesLabels(ChangesLabel.Shaders, ["**/*.sws"], request, changedFiles, ct: ct);
-        await EnsureChangesLabels(ChangesLabel.Audio, ["**/*.ogg"], request, changedFiles, ct: ct);
-        await EnsureChangesLabels(ChangesLabel.NoCSharp, ["**/*.cs"], request, changedFiles, isInverted: true, ct: ct);
+        await EnsureChangesLabels(ChangesLabel.Sprites, ["**/*.rsi/*.png"], message, changedFiles, ct: ct);
+        await EnsureChangesLabels(ChangesLabel.Map, ["Resources/Maps/**/*.yml", "Resources/Prototypes/Maps/**/*.yml"], message, changedFiles, ct: ct);
+        await EnsureChangesLabels(ChangesLabel.Ui, ["**/*.xaml*"], message, changedFiles, ct: ct);
+        await EnsureChangesLabels(ChangesLabel.Shaders, ["**/*.sws"], message, changedFiles, ct: ct);
+        await EnsureChangesLabels(ChangesLabel.Audio, ["**/*.ogg"], message, changedFiles, ct: ct);
+        await EnsureChangesLabels(ChangesLabel.NoCSharp, ["**/*.cs"], message, changedFiles, isInverted: true, ct: ct);
     }
 
     private async Task EnsureChangesLabels(
@@ -89,7 +91,7 @@ public class LabelPullRequestHandler(
             await labelManager.EnsureNotLabeled(request, label, ct);
     }
 
-    private async Task OnClosed(CancellationToken ct, string repoOwner, string repoName, int prNumber)
+    private async Task OnClosed(string repoOwner, string repoName, int prNumber, CancellationToken ct)
     {
         // pr was just closed, not merged.
         var discussion = await topicsRepository.FindTopicIdForDiscussion(repoOwner, repoName, prNumber, ct);
@@ -100,7 +102,7 @@ public class LabelPullRequestHandler(
         }
     }
 
-    private async Task OnMerged(CancellationToken ct, string repoOwner, string repoName, int prNumber, string?[] labels, GithubRepo repository)
+    private async Task OnMerged(string repoOwner, string repoName, int prNumber, string?[] labels, GithubRepo repository, CancellationToken ct)
     {
         // PR got merged
         var discussion = await topicsRepository.FindTopicIdForDiscussion(repoOwner, repoName, prNumber, ct);
@@ -117,7 +119,7 @@ public class LabelPullRequestHandler(
         }
     }
 
-    private async Task OnReviewRequested(PullRequestEvent request, CancellationToken ct, GithubRepo repository)
+    private async Task OnReviewRequested(PullRequestEvent request, GithubRepo repository, CancellationToken ct)
     {
         if (await client.IsMaintainer(request.RequestedReviewer!.Login, repository, ct))
         {
@@ -125,7 +127,7 @@ public class LabelPullRequestHandler(
         }
     }
 
-    private async Task OnLabelAdd(PullRequestEvent request, CancellationToken ct, string repoOwner, string repoName, int prNumber, GithubRepo repository)
+    private async Task OnLabelAdd(PullRequestEvent request, string repoOwner, string repoName, int prNumber, GithubRepo repository, CancellationToken ct)
     {
         if(!_discourseConfig.Enable)
             return;
@@ -155,7 +157,7 @@ public class LabelPullRequestHandler(
         }
     }
 
-    private async Task OnOpened(PullRequestEvent request, CancellationToken ct, string?[] labels, PullRequest pr, GithubRepo repository)
+    private async Task OnOpened(PullRequestEvent request, string?[] labels, PullRequest pr, GithubRepo repository, CancellationToken ct)
     {
         var targetBranch = pr.Base.Ref;
         if (targetBranch == "stable")

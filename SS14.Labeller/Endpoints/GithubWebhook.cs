@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using SS14.Labeller.Handlers;
 using SS14.Labeller.Middlewares;
 using SS14.Labeller.Models;
 
@@ -24,10 +23,10 @@ public static class GithubWebhook
 
     private static async Task<NoContent> HandleWebhook(
         EventBase @event,
-        [FromServices] GitHubWebhookHandlerService handler,
+        [FromServices] GenericPublisher publisher,
         CancellationToken ct)
     {
-        await handler.Handle(@event, ct);
+        await publisher.PublishByType(@event, ct);
         return TypedResults.NoContent();
     }
 }

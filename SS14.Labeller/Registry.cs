@@ -3,12 +3,15 @@ using SS14.Labeller.Configuration;
 using SS14.Labeller.Database;
 using SS14.Labeller.DiscourseApi;
 using SS14.Labeller.GitHubApi;
-using SS14.Labeller.Handlers;
 using SS14.Labeller.Labelling;
 using SS14.Labeller.Repository;
 using System.Net.Http.Headers;
 using Polly;
 using Polly.Extensions.Http;
+using SS14.Labeller.Initialization;
+using MessagePipe;
+using SS14.Labeller.Handlers;
+using SS14.Labeller.Models;
 
 namespace SS14.Labeller;
 
@@ -43,6 +46,7 @@ public static class Registry
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", githubConfig.Token);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
         }).AddHttpMessageHandler<GithubRetryHandler>();
+        service.AddTransient<GithubRetryHandler>();
 
         var discourseStartupConfig = new DiscourseConfig();
         configuration.Bind(DiscourseConfig.Name, discourseStartupConfig);
@@ -66,20 +70,25 @@ public static class Registry
         }
 
         service.AddSingleton<ILabelManager, LabelManager>();
-        
-        service.AddSingleton<RequestHandlerBase, LabelIssueHandler>();
-        service.AddSingleton<RequestHandlerBase, LabelPullRequestReviewHandler>();
-        service.AddSingleton<RequestHandlerBase, LabelPullRequestHandler>();
-        service.AddSingleton<GitHubWebhookHandlerService>();
-        
+
+
         service.AddSingleton<IDiscourseTopicsRepository, DiscourseTopicsRepository>();
+        
+        service.AddHostedService<ApplicationServicesInitializingBackgroundService>();
+
+        service.AddSingleton<IOnApplicationStartInitializable, MessagePipeSubscriptionManager>();
 
         service.AddHostedService<DatabaseMigrationApplyingBackgroundService>();
 
-        service.AddSingleton<IReadOnlyDictionary<Type, RequestHandlerBase>>(
-            sp => sp.GetServices<RequestHandlerBase>()
-                    .ToDictionary(x => x.CanHandleType)
+        service.AddSingleton<IAsyncMessageHandler<IssuesEvent>, LabelIssueHandler>();
+        service.AddSingleton<IAsyncMessageHandler<PullRequestEvent>, LabelPullRequestHandler>();
+        service.AddSingleton<IAsyncMessageHandler<PullRequestReviewEvent>, LabelPullRequestReviewHandler>();
+
+        service.AddMessagePipe(
+            x => x.SetAutoRegistrationSearchAssemblies(typeof(Registry).Assembly)
         );
+
+        service.AddSingleton<GenericPublisher>();
     }
 
     private static IAsyncPolicy<HttpResponseMessage> GetDiscourseRetryPolicy(IServiceProvider sp)
