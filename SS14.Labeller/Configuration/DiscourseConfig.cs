@@ -12,8 +12,19 @@ public class DiscourseConfig
     public string ApiKey { get; set; } = string.Empty;
     [Required]
     public string Username { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The category for PR discussion topics.
+    /// </summary>
     [Required]
     public int DiscussionCategoryId { get; set; }
+
+    /// <summary>
+    /// The category for breaking changes topics.
+    /// </summary>
+    [Required]
+    public int BreakingChangesCategoryId { get; set; }
+
     [Required]
     public string Url { get; set; } = string.Empty;
 

@@ -8,6 +8,7 @@
     "ApiKey": "---",
     "Username": "---",
     "DiscussionCategoryId": 0,
+    "BreakingChangesCategoryId": 1,
     "Url": "https://forum.example.com/"
   }
 }

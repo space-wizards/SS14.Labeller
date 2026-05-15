@@ -47,6 +47,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 { "Discourse:ApiKey", "wawa" },
                 { "Discourse:Username", "aw" },
                 { "Discourse:DiscussionCategoryId", "42" },
+                { "Discourse:BreakingChangesCategoryId", "1337" },
                 { "Discourse:Url", "http://wa.wa" },
                 { "GitHub:WebhookSecret", IntegrationTests.HookSecret },
                 { "GitHub:Token", "test-test" },

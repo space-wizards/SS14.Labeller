@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.FileSystemGlobbing;
+﻿using System.Text.RegularExpressions;
+using Microsoft.Extensions.FileSystemGlobbing;
 using Microsoft.Extensions.Options;
 using SS14.Labeller.Configuration;
 using SS14.Labeller.DiscourseApi;
@@ -11,7 +12,7 @@ using SS14.Labeller.Repository;
 
 namespace SS14.Labeller.Handlers;
 
-public class LabelPullRequestHandler(
+public partial class LabelPullRequestHandler(
     IGitHubApiClient client,
     IDiscourseClient discourseClient,
     IDiscourseTopicsRepository topicsRepository,
@@ -20,6 +21,36 @@ public class LabelPullRequestHandler(
 ) : RequestHandlerBase<PullRequestEvent>
 {
     private readonly DiscourseConfig _discourseConfig = config.Value;
+
+    /// <summary>
+    /// Regex used to match the breaking changes section in the PR description.
+    /// </summary>
+    /// <remarks>
+    /// <code>
+    /// Regex explanation:
+    /// ^ start of new line
+    /// ## markdown header symbols
+    /// \s+ at least one whitespace character
+    /// Breaking Changes
+    /// \s* optional white space
+    /// \r?\n line break
+    /// (.*?) Capture everything inside the section
+    /// (?=^##\s|^#\s|\Z) stops when
+    ///   ^## next section or
+    ///   ^# next higher level section or
+    ///   **Changelog** backwards compability for the previously used section header
+    ///   \z end of text
+    /// </code>
+    /// </remarks>
+    [GeneratedRegex(@"^##\s+Breaking Changes\s*\r?\n(.*?)(?=^##\s|^#\s|^\*\*Changelog\*\*|\z)", RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.IgnoreCase)]
+    private static partial Regex BreakingChangesRegex();
+
+    /// <summary>
+    /// Regex for removing markdown comments before parsing the breaking changes section.
+    /// </summary>
+    /// <remarks>
+    [GeneratedRegex(@"<!--.*?-->", RegexOptions.Singleline)]
+    private static partial Regex MarkdownCommentRemovalRegex();
 
     /// <inheritdoc />
     protected override async Task HandleInternal(PullRequestEvent request, CancellationToken ct)
@@ -41,8 +72,8 @@ public class LabelPullRequestHandler(
         await (request.EventType switch
         {
             PullRequestEventType.Labelled => OnLabelAdd(request, ct, repoOwner, repoName, prNumber, repository),
-            PullRequestEventType.ClosedRejected => OnClosed(ct, repoOwner, repoName, prNumber),
-            PullRequestEventType.ClosedMerged => OnMerged(ct, repoOwner, repoName, prNumber, labels, repository),
+            PullRequestEventType.ClosedRejected => OnClosed(request, ct, repoOwner, repoName, prNumber),
+            PullRequestEventType.ClosedMerged => OnMerged(request, ct, repoOwner, repoName, prNumber, labels, repository),
             PullRequestEventType.Opened => OnOpened(request, ct, labels, pr, repository),
             PullRequestEventType.ReviewRequested => OnReviewRequested(request, ct, repository),
             _ => Task.CompletedTask
@@ -89,7 +120,7 @@ public class LabelPullRequestHandler(
             await labelManager.EnsureNotLabeled(request, label, ct);
     }
 
-    private async Task OnClosed(CancellationToken ct, string repoOwner, string repoName, int prNumber)
+    private async Task OnClosed(PullRequestEvent request, CancellationToken ct, string repoOwner, string repoName, int prNumber)
     {
         // pr was just closed, not merged.
         var discussion = await topicsRepository.FindTopicIdForDiscussion(repoOwner, repoName, prNumber, ct);
@@ -100,7 +131,7 @@ public class LabelPullRequestHandler(
         }
     }
 
-    private async Task OnMerged(CancellationToken ct, string repoOwner, string repoName, int prNumber, string?[] labels, GithubRepo repository)
+    private async Task OnMerged(PullRequestEvent request, CancellationToken ct, string repoOwner, string repoName, int prNumber, string?[] labels, GithubRepo repository)
     {
         // PR got merged
         var discussion = await topicsRepository.FindTopicIdForDiscussion(repoOwner, repoName, prNumber, ct);
@@ -115,6 +146,40 @@ public class LabelPullRequestHandler(
         {
             await client.AddComment(repository, prNumber, StatusMessages.UntriagedPullRequestMergedComment, ct);
         }
+
+        if(!_discourseConfig.Enable)
+            return;
+
+        var prBody = request.PullRequest.Body;
+
+        if (string.IsNullOrWhiteSpace(prBody))
+            return;
+
+        // Remove markdown comments.
+        prBody = MarkdownCommentRemovalRegex().Replace(prBody, "");
+
+        // Match the breaking changes section.
+        var match = BreakingChangesRegex().Match(prBody);
+
+        if (!match.Success)
+            return; // No breaking changes found.
+
+        string breakingChanges = match.Groups[1].Value.Trim();
+
+        if (string.IsNullOrWhiteSpace(breakingChanges))
+            return; // Nothing to post.
+
+        // Create a breaking changes topic.
+        var topic = await discourseClient.CreateTopic(
+            _discourseConfig.BreakingChangesCategoryId,
+            StatusMessages.BreakingChangesTopicBody(request.PullRequest.Url, breakingChanges),
+            request.PullRequest.Title,
+            ct
+        );
+
+        var topicLink = _discourseConfig.Url + topic.PostUrl[1..];
+
+        await client.AddComment(repository, prNumber, StatusMessages.BreakingChangesResponse(topicLink), ct);
     }
 
     private async Task OnReviewRequested(PullRequestEvent request, CancellationToken ct, GithubRepo repository)
@@ -147,7 +212,7 @@ public class LabelPullRequestHandler(
 
             var topicLink = _discourseConfig.Url + topic.PostUrl[1..];
 
-            await client.AddComment(repository, prNumber, StatusMessages.StartedDiscussion(topicLink), ct);
+            await client.AddComment(repository, prNumber, StatusMessages.StartedDiscussionResponse(topicLink), ct);
 
             await discourseClient.ApplyTags(topic.TopicId, ct, _discourseConfig.Tagging.PrOpenTag);
 
