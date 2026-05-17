@@ -44,6 +44,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         {
             configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
             {
+                { "Discourse:Enable", "true" },
                 { "Discourse:ApiKey", "wawa" },
                 { "Discourse:Username", "aw" },
                 { "Discourse:DiscussionCategoryId", "42" },
