@@ -310,4 +310,58 @@ public partial class IntegrationTests
                                      Arg.Any<CancellationToken>()
                                  );
     }
+
+    [Test]
+    public async Task PullRequest_TaggedWithNeedsDiscussionAndNoExistingDiscussion_NewDiscourseThreadSaved()
+    {
+        // Arrange
+        const string fileName = "pull_request_needs_discussion.json";
+        var requestContent = await CreateRequestContent(fileName, "pull_request");
+        _applicationFactory.TopicsRepository
+                           .HasTopic("Fildrance", "SS14.Labeller", 36, Arg.Any<CancellationToken>())
+                           .Returns(false);
+
+        _applicationFactory.DiscourseClient.CreateTopic(42, Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+                           .Returns(Task.FromResult(new DiscourseCreatedPost{PostUrl = "https://discourse.example.com/t/42", TopicId = 43}));
+
+        // Act
+        var result = await _client.PostAsync("/webhook", requestContent);
+
+        // Assert
+        var respText = await result.Content.ReadAsStringAsync();
+        Assert.That(
+            result.StatusCode,
+            Is.EqualTo(HttpStatusCode.NoContent),
+            $"Invalid response status - {result.StatusCode}, response text: \r\n{respText}."
+        );
+        await _applicationFactory.TopicsRepository
+                                 .Received()
+                                 .Add("Fildrance", "SS14.Labeller", 36, 43, Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task PullRequest_TaggedWithNeedsDiscussionAndExistingDiscussion_NoNewDiscussionCreated()
+    {
+        // Arrange
+        const string fileName = "pull_request_needs_discussion.json";
+        var requestContent = await CreateRequestContent(fileName, "pull_request");
+        _applicationFactory.TopicsRepository
+                           .HasTopic("Fildrance", "SS14.Labeller", 36, Arg.Any<CancellationToken>())
+                           .Returns(true);
+
+
+        // Act
+        var result = await _client.PostAsync("/webhook", requestContent);
+
+        // Assert
+        var respText = await result.Content.ReadAsStringAsync();
+        Assert.That(
+            result.StatusCode,
+            Is.EqualTo(HttpStatusCode.NoContent),
+            $"Invalid response status - {result.StatusCode}, response text: \r\n{respText}."
+        );
+
+        await _applicationFactory.DiscourseClient.DidNotReceive()
+                           .CreateTopic(Arg.Any<int>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
 }
