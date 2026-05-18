@@ -4,22 +4,20 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <InvariantGlobalization>true</InvariantGlobalization>
-        <PublishAot>true</PublishAot>
-        <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
-        <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Dapper.AOT</InterceptorsPreviewNamespaces>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     </PropertyGroup>
 
-
     <ItemGroup>
-        <EmbeddedResource Include="Database\Migrations\Script0001_Init.sql" />
-    </ItemGroup>
-
-    <ItemGroup>
+      <PackageReference Include="EFCore.NamingConventions" Version="9.0.0" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.9">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
       <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="9.0.6" />
       <PackageReference Include="Dapper" Version="2.1.66" />
-      <PackageReference Include="Dapper.AOT" Version="1.0.48" />
       <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.8" />
       <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="9.0.8" />
+      <PackageReference Include="Npgsql" Version="9.0.3" />
+      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
     </ItemGroup>
 </Project>

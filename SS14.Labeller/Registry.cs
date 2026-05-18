@@ -7,6 +7,7 @@ using SS14.Labeller.Handlers;
 using SS14.Labeller.Labelling;
 using SS14.Labeller.Repository;
 using System.Net.Http.Headers;
+using Microsoft.EntityFrameworkCore;
 using Polly;
 using Polly.Extensions.Http;
 
@@ -43,6 +44,7 @@ public static class Registry
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", githubConfig.Token);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
         }).AddHttpMessageHandler<GithubRetryHandler>();
+        service.AddTransient<GithubRetryHandler>();
 
         var discourseStartupConfig = new DiscourseConfig();
         configuration.Bind(DiscourseConfig.Name, discourseStartupConfig);
@@ -74,12 +76,24 @@ public static class Registry
         
         service.AddSingleton<IDiscourseTopicsRepository, DiscourseTopicsRepository>();
 
-        service.AddHostedService<DatabaseMigrationApplyingBackgroundService>();
-
         service.AddSingleton<IReadOnlyDictionary<Type, RequestHandlerBase>>(
             sp => sp.GetServices<RequestHandlerBase>()
                     .ToDictionary(x => x.CanHandleType)
         );
+
+
+        var connectionString = configuration.GetConnectionString("Default")
+                               ?? throw new InvalidOperationException(
+                                   "Failed to find 'Default' connection string "
+                                   + "from application configuration for database initialization."
+                               );
+
+        service.AddPooledDbContextFactory<CustomDbContext>(
+            optsBuilder => optsBuilder.UseNpgsql(connectionString)
+                                      .UseSnakeCaseNamingConvention()
+        );
+
+        service.AddSingleton<IContextConfiguration, DiscourseEntitiesContextConfiguration>();
     }
 
     private static IAsyncPolicy<HttpResponseMessage> GetDiscourseRetryPolicy(IServiceProvider sp)

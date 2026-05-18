@@ -2,12 +2,11 @@ using Dapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using SS14.Labeller.Configuration;
+using SS14.Labeller.Database;
 using SS14.Labeller.Endpoints;
 using SS14.Labeller.Handlers;
 using SS14.Labeller.Middlewares;
 using SS14.Labeller.Models;
-
-[module:DapperAot]
 
 namespace SS14.Labeller;
 
@@ -27,6 +26,8 @@ public class Program
         builder.Services.RegisterDependencies(builder.Configuration);
 
         var app = builder.Build();
+
+        DatabaseMigration.MigrateDatabase(app.Services);
 
         app.UseHttpLogging();
 

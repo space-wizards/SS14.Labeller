@@ -32,14 +32,9 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
-      - name: Install NativeAOT Dependencies
+      - name: Publish app
         run: |
-          sudo apt-get update
-          sudo apt-get install -y clang zlib1g-dev
-
-      - name: Publish NativeAOT app
-        run: |
-          dotnet publish ./SS14.Labeller -c Release -r ${{ matrix.rid }} --self-contained true /p:PublishAot=true -o publish
+          dotnet publish ./SS14.Labeller -c Release -r ${{ matrix.rid }} --self-contained true -o publish
 
       - name: Prepare release zip
         run: |

@@ -1,17 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
 using NSubstitute;
-using SS14.Labeller.Database;
 using SS14.Labeller.DiscourseApi;
 using SS14.Labeller.GitHubApi;
 using SS14.Labeller.Repository;
+using SS14.Labeller.Tests.IntegrationTests;
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
 namespace SS14.Labeller.Tests;
 
@@ -35,11 +34,6 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             sp.Replace(new ServiceDescriptor(typeof(IGitHubApiClient), GitHubApiClient));
             sp.Replace(new ServiceDescriptor(typeof(IDiscourseClient), DiscourseClient));
             sp.Replace(new ServiceDescriptor(typeof(IDiscourseTopicsRepository), TopicsRepository));
-            var hostedServiceDescriptor = sp.First(d =>
-                d.ServiceType == typeof(IHostedService) &&
-                d.ImplementationType == typeof(DatabaseMigrationApplyingBackgroundService)); // Replace YourHostedService with the actual type
-
-            sp.Remove(hostedServiceDescriptor);
         }).ConfigureAppConfiguration((context, configurationBuilder) =>
         {
             configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
@@ -48,7 +42,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 { "Discourse:Username", "aw" },
                 { "Discourse:DiscussionCategoryId", "42" },
                 { "Discourse:Url", "http://wa.wa" },
-                { "GitHub:WebhookSecret", IntegrationTests.HookSecret },
+                { "GitHub:WebhookSecret", HandlersTests.HookSecret },
                 { "GitHub:Token", "test-test" },
             });
         });

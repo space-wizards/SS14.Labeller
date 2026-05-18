@@ -15,7 +15,7 @@ namespace SS14.Labeller.GitHubApi;
 /// <br/> <see href="https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api?apiVersion=2022-11-28">Rate limit information</see>
 /// </summary>
 /// <remarks> This was designed for the 2022-11-28 version of the API. </remarks>
-public sealed class GithubRetryHandler(HttpMessageHandler innerHandler, IOptionsMonitor<GitHubConfig> githubConfig, ILogger<GithubRetryHandler> logger) : DelegatingHandler(innerHandler)
+public sealed class GithubRetryHandler(IOptionsMonitor<GitHubConfig> githubConfig, ILogger<GithubRetryHandler> logger) : DelegatingHandler
 {
     private const int MaxWaitSeconds = 32;
 

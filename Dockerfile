@@ -18,9 +18,9 @@ RUN echo "Building for platform: $TARGETPLATFORM" \
     "linux/arm64") export RID=linux-arm64 ;; \
     *) echo "Unsupported TARGETPLATFORM: $TARGETPLATFORM" && exit 1 ;; \
     esac \
-    && dotnet publish -c Release -r $RID --self-contained true /p:PublishAot=true -o /app
+    && dotnet publish -c Release -r $RID -o /app
 
-FROM debian:bookworm-slim AS final
+FROM mcr.microsoft.com/dotnet/aspnet:9.0.10-bookworm-slim AS final
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
