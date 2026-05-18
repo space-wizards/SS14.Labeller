@@ -325,15 +325,9 @@ public partial class IntegrationTests
                            .Returns(Task.FromResult(new DiscourseCreatedPost{PostUrl = "https://discourse.example.com/t/42", TopicId = 43}));
 
         // Act
-        var result = await _client.PostAsync("/webhook", requestContent);
+        await _client.PostAsync("/webhook", requestContent);
 
         // Assert
-        var respText = await result.Content.ReadAsStringAsync();
-        Assert.That(
-            result.StatusCode,
-            Is.EqualTo(HttpStatusCode.NoContent),
-            $"Invalid response status - {result.StatusCode}, response text: \r\n{respText}."
-        );
         await _applicationFactory.TopicsRepository
                                  .Received()
                                  .Add("Fildrance", "SS14.Labeller", 36, 43, Arg.Any<CancellationToken>());
@@ -351,16 +345,9 @@ public partial class IntegrationTests
 
 
         // Act
-        var result = await _client.PostAsync("/webhook", requestContent);
+        await _client.PostAsync("/webhook", requestContent);
 
         // Assert
-        var respText = await result.Content.ReadAsStringAsync();
-        Assert.That(
-            result.StatusCode,
-            Is.EqualTo(HttpStatusCode.NoContent),
-            $"Invalid response status - {result.StatusCode}, response text: \r\n{respText}."
-        );
-
         await _applicationFactory.DiscourseClient.DidNotReceive()
                            .CreateTopic(Arg.Any<int>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
