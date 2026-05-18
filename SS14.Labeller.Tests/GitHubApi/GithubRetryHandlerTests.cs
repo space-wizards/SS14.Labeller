@@ -36,7 +36,7 @@ public class GithubRetryHandlerTests
     public void SendAsync_SuccessfulRequest()
     {
         // Arrange
-        _mockInnerHandler.Send(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>())
+        _mockInnerHandler.SendStub(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>())
                          .Returns(Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.OK }));
 
         var handler = new GithubRetryHandler(_mockInnerHandler, _config, _logger);
@@ -46,14 +46,14 @@ public class GithubRetryHandlerTests
         var result = httpClient.SendAsync(_httpRequestMessage, default).Result;
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+        Assert.That(result.StatusCode, Is.EqualTo(HttpStatusCode.OK));
     }
 
     [Test]
     public void SendAsync_NetworkErrorRetries()
     {
         // Arrange
-        _mockInnerHandler.Send(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>())
+        _mockInnerHandler.SendStub(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>())
                          .Returns(
                              _=> throw new HttpRequestException(HttpRequestError.ConnectionError), 
                              _=>  Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.OK })
@@ -66,7 +66,7 @@ public class GithubRetryHandlerTests
         var result = httpClient.SendAsync(_httpRequestMessage, default).Result;
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+        Assert.That(result.StatusCode, Is.EqualTo(HttpStatusCode.OK));
     }
 
     [Test]
@@ -84,7 +84,7 @@ public class GithubRetryHandlerTests
 
         var response2 = new HttpResponseMessage(HttpStatusCode.OK);
 
-        _mockInnerHandler.Send(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>())
+        _mockInnerHandler.SendStub(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>())
                          .Returns(response1, response2);
 
         var handler = new GithubRetryHandler(_mockInnerHandler, _config, _logger);
@@ -103,7 +103,7 @@ public class GithubRetryHandlerTests
     public void SendAsync_MaxRetryExceeded()
     {
         // Arrange
-        _mockInnerHandler.Send(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>())
+        _mockInnerHandler.SendStub(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>())
                          .ThrowsAsync(new HttpRequestException(HttpRequestError.ConnectionError));
 
         _gitHubConfig.MaxRetryAttempt = 2;
@@ -125,10 +125,10 @@ public class MockHttpMessageHandler : HttpMessageHandler
 {
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        return Send(request, cancellationToken);
+        return SendStub(request, cancellationToken);
     }
 
-    public virtual Task<HttpResponseMessage> Send(HttpRequestMessage request, CancellationToken cancellationToken)
+    public virtual Task<HttpResponseMessage> SendStub(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }
