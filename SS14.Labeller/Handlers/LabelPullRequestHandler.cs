@@ -22,35 +22,34 @@ public partial class LabelPullRequestHandler(
 {
     private readonly DiscourseConfig _discourseConfig = config.Value;
 
-    /// <summary>
-    /// Regex used to match the breaking changes section in the PR description.
-    /// </summary>
-    /// <remarks>
-    /// <code>
-    /// Regex explanation:
-    /// ^ start of new line
-    /// ## markdown header symbols
-    /// \s+ at least one whitespace character
-    /// Breaking Changes
-    /// \s* optional white space
-    /// \r?\n line break
-    /// (.*?) Capture everything inside the section
-    /// (?=^##\s|^#\s|\Z) stops when
-    ///   ^## next section or
-    ///   ^# next higher level section or
-    ///   **Changelog** backwards compability for the previously used section header
-    ///   \z end of text
-    /// </code>
-    /// </remarks>
-    [GeneratedRegex(@"^##\s+Breaking Changes\s*\r?\n(.*?)(?=^##\s|^#\s|^\*\*Changelog\*\*|\z)", RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.IgnoreCase)]
+    // Regex explanation:
+    // ^ start of new line
+    // ## markdown header symbols
+    // \s+ at least one whitespace character
+    // Breaking Changes
+    // \s* optional white space
+    // \r?\n line break
+    // (?<breakingChanges>.*?) Capture everything inside the section, captured group is named 'breakingChanges'
+    // (?=^##\s|^#\s|\Z) stops when
+    //   ^## next section or
+    //   ^# next higher level section or
+    //   **Changelog** backwards compability for the previously used section header
+    //   \z end of text
+    [GeneratedRegex(@"^##\s+Breaking Changes\s*\r?\n(?<breakingChanges>.*?)(?=^##\s|^#\s|^\*\*Changelog\*\*|\z)", RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.IgnoreCase)]
     private static partial Regex BreakingChangesRegex();
 
     /// <summary>
     /// Regex for removing markdown comments before parsing the breaking changes section.
     /// </summary>
-    /// <remarks>
     [GeneratedRegex(@"<!--.*?-->", RegexOptions.Singleline)]
     private static partial Regex MarkdownCommentRemovalRegex();
+
+    /// <summary>
+    /// Matches any word character to detect meaningful text content,
+    /// as opposed to only punctuation/whitespace/special symbols.
+    /// </summary>
+    [GeneratedRegex(@"\w")]
+    private static partial Regex MeaningfulContentRegex();
 
     /// <inheritdoc />
     protected override async Task HandleInternal(PullRequestEvent request, CancellationToken ct)
@@ -156,18 +155,20 @@ public partial class LabelPullRequestHandler(
             return;
 
         // Remove markdown comments.
-        prBody = MarkdownCommentRemovalRegex().Replace(prBody, "");
+        prBody = MarkdownCommentRemovalRegex().Replace(prBody, string.Empty);
 
         // Match the breaking changes section.
         var match = BreakingChangesRegex().Match(prBody);
 
-        if (!match.Success)
+        if (!match.Success || !match.Groups.TryGetValue("breakingChanges", out var breakingChangesMatch))
             return; // No breaking changes found.
 
-        string breakingChanges = match.Groups[1].Value.Trim();
+        string breakingChanges = breakingChangesMatch.Value.Trim();
 
-        if (string.IsNullOrWhiteSpace(breakingChanges))
-            return; // Nothing to post.
+        // Only post if the breaking changes section contains "actual" content
+        // (word characters or markdown links/images), not just punctuation.
+        if (!MeaningfulContentRegex().IsMatch(breakingChanges))
+            return;
 
         // Create a breaking changes topic.
         var topic = await discourseClient.CreateTopic(
