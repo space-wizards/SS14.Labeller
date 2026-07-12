@@ -22,26 +22,19 @@ public partial class LabelPullRequestHandler(
 {
     private readonly DiscourseConfig _discourseConfig = config.Value;
 
-    /// <summary>
-    /// Regex used to match the breaking changes section in the PR description.
-    /// </summary>
-    /// <remarks>
-    /// <code>
-    /// Regex explanation:
-    /// ^ start of new line
-    /// ## markdown header symbols
-    /// \s+ at least one whitespace character
-    /// Breaking Changes
-    /// \s* optional white space
-    /// \r?\n line break
-    /// (.*?) Capture everything inside the section
-    /// (?=^##\s|^#\s|\Z) stops when
-    ///   ^## next section or
-    ///   ^# next higher level section or
-    ///   **Changelog** backwards compability for the previously used section header
-    ///   \z end of text
-    /// </code>
-    /// </remarks>
+    // Regex explanation:
+    // ^ start of new line
+    // ## markdown header symbols
+    // \s+ at least one whitespace character
+    // Breaking Changes
+    // \s* optional white space
+    // \r?\n line break
+    // (?<breakingChanges>.*?) Capture everything inside the section, captured group is named 'breakingChanges'
+    // (?=^##\s|^#\s|\Z) stops when
+    //   ^## next section or
+    //   ^# next higher level section or
+    //   **Changelog** backwards compability for the previously used section header
+    //   \z end of text
     [GeneratedRegex(@"^##\s+Breaking Changes\s*\r?\n(?<breakingChanges>.*?)(?=^##\s|^#\s|^\*\*Changelog\*\*|\z)", RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.IgnoreCase)]
     private static partial Regex BreakingChangesRegex();
 
