@@ -46,10 +46,16 @@ public enum PullRequestEventType
 }
 public class PullRequest
 {
+    /// <summary>
+    /// Number uniquely identifying the pull request within its repository.
+    /// </summary>
     public int Number { get; set; }
 
     public required Label[] Labels { get; set; }
 
+    /// <summary>
+    /// The user who opened this pull request.
+    /// </summary>
     public required User User { get; set; }
 
     public required BranchInfo Base { get; set; }
@@ -60,7 +66,16 @@ public class PullRequest
 
     [JsonPropertyName("merged_at")] public string? MergedAt { get; set; }
 
+    /// <summary>
+    /// The title of the pull request.
+    /// </summary>
     public required string Title { get; set; }
+
+    /// <summary>
+    /// The description text of the pull request.
+    /// </summary>
+    public required string Body { get; set; }
+
     [JsonPropertyName("html_url")] public required string Url { get; set; }
 }
 

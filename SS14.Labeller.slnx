@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="SS14.Labeller.Tests/SS14.Labeller.Tests.csproj" />
+  <Project Path="SS14.Labeller/SS14.Labeller.csproj" />
+</Solution>

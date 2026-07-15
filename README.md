@@ -16,6 +16,7 @@ Create the a file called appsettings.json like so:
     "ApiKey": "---",
     "Username": "---",
     "DiscussionCategoryId": 0,
+    "BreakingChangesCategoryId": 1,
     "Url": "https://forum.example.com/"
   }
 }
@@ -35,6 +36,7 @@ To set the port, use the `ASPNETCORE_URLS` environment variable, e.g. `ASPNETCOR
 *ApiKey*: An API key for Discourse. Follow [these](https://meta.discourse.org/t/create-and-configure-an-api-key/230124) docs for how to get one.\
 *Username*: The username to use for Discourse.\
 *DiscussionCategoryId*: What category to send new discussion Topics in. You can get this by opening the Topic in your browser and the number in the URL is the category ID.\
+*BreakingChangesCategoryId*: What category to send new breaking changes Topics in. You can get this by opening the Topic in your browser and the number in the URL is the category ID.\
 *Url*: The Forum URL. Must end with a trailing slash.
 
 ## Building

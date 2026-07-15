@@ -16,11 +16,27 @@ public static class StatusMessages
          weigh the entire discussion, to the best of their ability, when making resolutions about the PR.
          """;
 
-    public static string StartedDiscussion(string topicName) =>
+    public static string BreakingChangesTopicBody(string link, string text) =>
+        $"""
+         {link}
+         
+         ## Breaking Changes
+         {text}
+         """;
+
+    public static string StartedDiscussionResponse(string link) =>
         $"""
          A discussion thread has been opened.
          
-         Please limit all further game design discussion to the following Topic: {topicName}
+         Please limit all further game design discussion to the following Topic:
+         {link}
+         
+         """;
+
+    public static string BreakingChangesResponse(string link) =>
+        $"""
+         The breaking changes were automatically posted in the following thread:
+         {link}
          
          """;
 
