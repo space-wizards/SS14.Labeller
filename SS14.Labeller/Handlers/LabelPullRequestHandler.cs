@@ -201,7 +201,7 @@ public partial class LabelPullRequestHandler(
             return;
 
         var exists = await topicsRepository.HasTopic(repoOwner, repoName, prNumber, ct);
-        if (exists)
+        if (!exists)
         {
             // need to make a new discussion.
             var topic = await discourseClient.CreateTopic(

@@ -18,9 +18,11 @@ namespace SS14.Labeller.Tests;
 [ExcludeFromCodeCoverage]
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     public IGitHubApiClient GitHubApiClient { get; private set; }
     public IDiscourseClient DiscourseClient { get; private set; }
     public IDiscourseTopicsRepository TopicsRepository { get; private set; }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
     /// <inheritdoc />
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -47,6 +49,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 { "Discourse:Enable", "true" },
                 { "Discourse:ApiKey", "wawa" },
                 { "Discourse:Username", "aw" },
+                { "Discourse:Enable", "true" },
                 { "Discourse:DiscussionCategoryId", "42" },
                 { "Discourse:BreakingChangesCategoryId", "1337" },
                 { "Discourse:Url", "http://wa.wa" },
