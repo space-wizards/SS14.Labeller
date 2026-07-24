@@ -7,6 +7,7 @@ using SS14.Labeller.Handlers;
 using SS14.Labeller.Labelling;
 using SS14.Labeller.Repository;
 using System.Net.Http.Headers;
+using SS14.Labeller.HealthChecks;
 using Polly;
 using Polly.Extensions.Http;
 
@@ -80,6 +81,14 @@ public static class Registry
             sp => sp.GetServices<RequestHandlerBase>()
                     .ToDictionary(x => x.CanHandleType)
         );
+
+        service.AddHealthChecks()
+               .AddCheck<GitHubApiKeyHealthCheck>(
+                   "GitHub API Key",
+                   tags: ["github", "api-key"]
+                );
+
+        service.AddMemoryCache();
     }
 
     private static IAsyncPolicy<HttpResponseMessage> GetDiscourseRetryPolicy(IServiceProvider sp)
