@@ -1,7 +1,10 @@
 {
   "GitHub": {
     "WebhookSecret": "mysecret",
-    "Token": "github_pat_AAAA"
+    "AuthMode": "Pat",
+    "Token": "github_pat_AAAA",
+    "Owner": "space-wizards",
+    "Repo": "space-station-14"
   },
   "Discourse": {
     "Enable": false,
