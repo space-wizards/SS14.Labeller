@@ -9,6 +9,7 @@ using SS14.Labeller.Repository;
 using System.Net.Http.Headers;
 using Polly;
 using Polly.Extensions.Http;
+using SS14.Labeller.GitHubApi.GitHubAppIntegration;
 
 namespace SS14.Labeller;
 
@@ -23,7 +24,9 @@ public static class Registry
 
         service.AddOptions<GitHubConfig>()
                .Bind(configuration.GetSection(GitHubConfig.Name))
-               .ValidateDataAnnotations();
+               .ValidateDataAnnotations()
+               .ValidateOnStart();
+        service.AddSingleton<IValidateOptions<GitHubConfig>, GitHubConfigValidator>();
 #pragma warning restore IL2026
 
         service.ConfigureHttpJsonOptions(options =>
@@ -35,14 +38,25 @@ public static class Registry
         {
             options.LoggingFields = Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.All;
         });
-        service.AddHttpClient<IGitHubApiClient, GitHubApiClient>((sp, client) =>
-        {
-            var githubConfig = sp.GetRequiredService<IOptions<GitHubConfig>>().Value;
 
-            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SS14.Labeller", "1.0"));
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", githubConfig.Token);
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
-        }).AddHttpMessageHandler<GithubRetryHandler>();
+        var githubAuthMode = configuration.GetSection(GitHubConfig.Name)
+                                          .GetValue<GitHubAuthMode?>("AuthMode") 
+                             ?? GitHubAuthMode.Pat;
+        if (githubAuthMode == GitHubAuthMode.App)
+        {
+            service.AddSingleton<IGitHubTokenProvider, GitHubAppTokenProvider>();
+        }
+        else
+        {
+            service.AddSingleton<IGitHubTokenProvider, PatTokenProvider>();
+        }
+
+        service.AddHttpClient<IGitHubTokenProvider, GitHubAppTokenProvider>((_, client) => ConfigureGitHubHttpClient(client))
+               .AddHttpMessageHandler<GithubRetryHandler>();
+
+        service.AddHttpClient<IGitHubApiClient, GitHubApiClient>((_, client) => ConfigureGitHubHttpClient(client))
+               .AddHttpMessageHandler<GithubRetryHandler>()
+               .AddHttpMessageHandler<GitHubAuthHandler>();
 
         var discourseStartupConfig = new DiscourseConfig();
         configuration.Bind(DiscourseConfig.Name, discourseStartupConfig);
@@ -80,6 +94,12 @@ public static class Registry
             sp => sp.GetServices<RequestHandlerBase>()
                     .ToDictionary(x => x.CanHandleType)
         );
+    }
+
+    private static void ConfigureGitHubHttpClient(HttpClient client)
+    {
+        client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("SS14.Labeller", "1.0"));
+        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
     }
 
     private static IAsyncPolicy<HttpResponseMessage> GetDiscourseRetryPolicy(IServiceProvider sp)

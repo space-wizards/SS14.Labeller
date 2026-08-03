@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -11,22 +12,27 @@ using NSubstitute.ExceptionExtensions;
 using NUnit.Framework;
 using SS14.Labeller.Configuration;
 using SS14.Labeller.GitHubApi;
+using SS14.Labeller.Tests.GitHubApi.Mocks;
 
 namespace SS14.Labeller.Tests.GitHubApi;
 
-[Category("Unit")]
+[Category("Unit"), ExcludeFromCodeCoverage]
 public class GithubRetryHandlerTests
 {
     private readonly ILogger<GithubRetryHandler> _logger = Substitute.For<ILogger<GithubRetryHandler>>();
     private readonly IOptionsMonitor<GitHubConfig> _config = Substitute.For<IOptionsMonitor<GitHubConfig>>();
-    private readonly MockHttpMessageHandler _mockInnerHandler = Substitute.ForPartsOf<MockHttpMessageHandler>();
+    private readonly MockInnerHandler _mockInnerHandler = Substitute.ForPartsOf<MockInnerHandler>();
     private HttpRequestMessage _httpRequestMessage = default!;
     private GitHubConfig _gitHubConfig;
 
     [SetUp]
     public void Setup()
     {
-        _gitHubConfig = new GitHubConfig();
+        _gitHubConfig = new GitHubConfig
+        {
+            Owner = "space-wizards",
+            Repo = "space-station-14"
+        };
         _config.CurrentValue.Returns(_gitHubConfig);
         _httpRequestMessage = new HttpRequestMessage();
         _httpRequestMessage.RequestUri = new Uri("http://some-random-non-existing-uri.cam");
@@ -46,7 +52,7 @@ public class GithubRetryHandlerTests
         var result = httpClient.SendAsync(_httpRequestMessage, default).Result;
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+        Assert.That(result.StatusCode, Is.EqualTo(HttpStatusCode.OK));
     }
 
     [Test]
@@ -66,7 +72,7 @@ public class GithubRetryHandlerTests
         var result = httpClient.SendAsync(_httpRequestMessage, default).Result;
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+        Assert.That(result.StatusCode, Is.EqualTo(HttpStatusCode.OK));
     }
 
     [Test]
@@ -118,18 +124,5 @@ public class GithubRetryHandlerTests
         sw.Stop();
 
         Assert.That(sw.Elapsed, Is.GreaterThanOrEqualTo(TimeSpan.FromSeconds(2)));
-    }
-}
-
-public class MockHttpMessageHandler : HttpMessageHandler
-{
-    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-    {
-        return Send(request, cancellationToken);
-    }
-
-    public virtual Task<HttpResponseMessage> Send(HttpRequestMessage request, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
     }
 }
