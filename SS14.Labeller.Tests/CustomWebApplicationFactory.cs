@@ -52,6 +52,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 { "Discourse:Url", "http://wa.wa" },
                 { "GitHub:WebhookSecret", IntegrationTests.HookSecret },
                 { "GitHub:Token", "test-test" },
+                { "Labeller:MainRepositoryName", "space-station-14" },
             });
         });
     }
