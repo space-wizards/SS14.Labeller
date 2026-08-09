@@ -11,4 +11,5 @@ public interface IGitHubApiClient
     Task<bool> IsMaintainer(string? user, GithubRepo forRepository, CancellationToken ct);
     Task AddComment(GithubRepo repo, int number, string comment, CancellationToken ct);
     Task<List<IssueComment>> GetComments(GithubRepo repo, int prNumber, CancellationToken ct);
+    Task<string> CreateIssue(string issueTitle, string issueBody, GithubRepo target, CancellationToken ct);
 }

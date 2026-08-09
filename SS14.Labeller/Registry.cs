@@ -24,6 +24,10 @@ public static class Registry
         service.AddOptions<GitHubConfig>()
                .Bind(configuration.GetSection(GitHubConfig.Name))
                .ValidateDataAnnotations();
+
+        service.AddOptions<LabellerConfig>()
+               .Bind(configuration.GetSection(LabellerConfig.Name))
+               .ValidateDataAnnotations();
 #pragma warning restore IL2026
 
         service.ConfigureHttpJsonOptions(options =>

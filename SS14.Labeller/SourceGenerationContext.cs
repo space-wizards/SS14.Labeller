@@ -8,6 +8,7 @@ namespace SS14.Labeller;
 
 [JsonSerializable(typeof(AddLabelRequest))]
 [JsonSerializable(typeof(AddCommentRequest))]
+[JsonSerializable(typeof(CreateIssueRequest))]
 [JsonSerializable(typeof(IssuesEvent))]
 [JsonSerializable(typeof(PullRequestEvent))]
 [JsonSerializable(typeof(PullRequestReviewEvent))]
