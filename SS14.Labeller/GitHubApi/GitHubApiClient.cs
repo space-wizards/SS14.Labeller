@@ -6,7 +6,7 @@ using SS14.Labeller.Labelling.Labels;
 
 namespace SS14.Labeller.GitHubApi;
 
-public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
+public class GitHubApiClient(HttpClient httpClient, ILogger<GitHubApiClient> logger) : IGitHubApiClient
 {
     private const string BaseUrl = "https://api.github.com";
 
@@ -17,7 +17,10 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
         var json = JsonSerializer.Serialize(request, SourceGenerationContext.Default.AddLabelRequest);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        await httpClient.PostAsync($"{BaseUrl}/repos/{owner}/{repoName}/issues/{number}/labels", content, ct);
+        await SendAndLogErrorsAsync(
+            () => httpClient.PostAsync(IssueUrl(owner, repoName, number, "labels"), content, ct),
+            "add label",
+            ct);
     }
 
     public Task AddLabel(GithubRepo repo, int number, LabelBase label, CancellationToken ct)
@@ -28,7 +31,10 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
     /// <inheritdoc />
     public async Task RemoveLabel(string owner, string repoName, int number, LabelBase label, CancellationToken ct)
     {
-        await httpClient.DeleteAsync($"{BaseUrl}/repos/{owner}/{repoName}/issues/{number}/labels/{Uri.EscapeDataString(label)}", ct);
+        await SendAndLogErrorsAsync(
+            () => httpClient.DeleteAsync(IssueUrl(owner, repoName, number, $"labels/{Uri.EscapeDataString(label)}"), ct),
+            "remove label",
+            ct);
     }
 
     public Task RemoveLabel(GithubRepo repo, int number, LabelBase label, CancellationToken ct)
@@ -45,11 +51,12 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
         var page = 1;
         while (true)
         {
-            var res = await httpClient.GetAsync($"{BaseUrl}/repos/{repo.Owner.Login}/{repo.Name}/pulls/{prNumber}/files?per_page=100&page={page}", ct);
-            if (!res.IsSuccessStatusCode)
-                break; // TODO: Logging?
+            var url = RepoUrl(repo.Owner.Login, repo.Name, $"pulls/{prNumber}/files?per_page=100&page={page}");
+            var response = await SendAndLogErrorsAsync(() => httpClient.GetAsync(url, ct), "get changed files", ct);
+            if (!response.IsSuccessStatusCode)
+                break;
 
-            var content = await res.Content.ReadAsStringAsync(ct);
+            var content = await response.Content.ReadAsStringAsync(ct);
             var json = JsonDocument.Parse(content);
             var batch = json.RootElement.EnumerateArray().Select(f => f.GetProperty("filename").GetString()!).ToList();
             if (batch.Count == 0) break;
@@ -66,13 +73,14 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
     /// <inheritdoc />
     public async Task<bool> IsMaintainer(string? user, GithubRepo repo, CancellationToken ct)
     {
-        var permRes = await httpClient.GetAsync($"{BaseUrl}/repos/{repo.Owner.Login}/{repo.Name}/collaborators/{user}/permission", ct);
-        if (!permRes.IsSuccessStatusCode)
+        var url = RepoUrl(repo.Owner.Login, repo.Name, $"collaborators/{user}/permission");
+        var response = await SendAndLogErrorsAsync(() => httpClient.GetAsync(url, ct), "IsMaintainer check", ct);
+        if (!response.IsSuccessStatusCode)
         {
-            throw new Exception("Failed to get permissions! Does the github token have enough access?");
+            throw new HttpRequestException("Failed to get permissions! Does the github token have enough access?");
         }
 
-        var permJson = JsonDocument.Parse(await permRes.Content.ReadAsStringAsync(ct));
+        var permJson = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
         var requestedPermission = permJson.RootElement.GetProperty("permission").GetString();
         return requestedPermission is "write" or "admin";
     }
@@ -83,7 +91,10 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
         var json = JsonSerializer.Serialize(request, SourceGenerationContext.Default.AddCommentRequest);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        await httpClient.PostAsync($"{BaseUrl}/repos/{repo.Owner.Login}/{repo.Name}/issues/{number}/comments", content, ct);
+        await SendAndLogErrorsAsync(
+            () => httpClient.PostAsync(IssueUrl(repo.Owner.Login, repo.Name, number, "update comments"), content, ct),
+            "AddComment",
+            ct);
     }
 
     public async Task<List<IssueComment>> GetComments(GithubRepo repo, int prNumber, CancellationToken ct)
@@ -93,15 +104,15 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
 
         while (true)
         {
-            var res = await httpClient.GetAsync(url, ct);
-            if (!res.IsSuccessStatusCode)
-                break; // TODO: Logging?
+            var response = await SendAndLogErrorsAsync(() => httpClient.GetAsync(url, ct), "get comments", ct);
+            if (!response.IsSuccessStatusCode)
+                break;
 
-            var json = await res.Content.ReadAsStringAsync(ct);
+            var json = await response.Content.ReadAsStringAsync(ct);
             var comments = (IssueComment[])JsonSerializer.Deserialize(json, typeof(IssueComment[]), SourceGenerationContext.DeserializationContext)!;
             allComments.AddRange(comments);
 
-            if (res.Headers.TryGetValues("Link", out var linkHeaders))
+            if (response.Headers.TryGetValues("Link", out var linkHeaders))
             {
                 var links = linkHeaders.FirstOrDefault();
                 url = ParseNextPageUrl(links);
@@ -112,6 +123,36 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
 
 
         return allComments;
+    }
+
+    private async Task<HttpResponseMessage> SendAndLogErrorsAsync(
+        Func<Task<HttpResponseMessage>> send,
+        string operation,
+        CancellationToken ct)
+    {
+        var response = await send();
+
+        if (response.IsSuccessStatusCode)
+            return response;
+
+        var body = await response.Content.ReadAsStringAsync(ct);
+        logger.LogError(
+            "GitHub API request '{Operation}' failed with status {StatusCode}: {Body}",
+            operation,
+            (int)response.StatusCode,
+            body);
+
+        return response;
+    }
+
+    private static string RepoUrl(string owner, string repoName, string path)
+    {
+        return $"{BaseUrl}/repos/{owner}/{repoName}/{path}";
+    }
+
+    private static string IssueUrl(string owner, string repoName, int number, string subPath)
+    {
+        return RepoUrl(owner, repoName, $"issues/{number}/{subPath}");
     }
 
     private static string? ParseNextPageUrl(string? linkHeader)

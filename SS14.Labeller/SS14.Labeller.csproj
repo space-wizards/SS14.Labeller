@@ -8,6 +8,13 @@
         <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
         <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Dapper.AOT</InterceptorsPreviewNamespaces>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <!-- Known, accepted trim/AOT warnings for this app:
+             IL2026 - ValidateDataAnnotations() in Registry.cs (config classes are kept via source-generated binding)
+             IL2104/IL3053 - Dapper, Microsoft.Data.Sqlite & Serilog.Settings.Configuration assemblies emit trim/AOT warnings
+             IL3000/IL3002 - Serilog.Settings.Configuration's assembly finder uses DependencyContext/Assembly.Location,
+                             which are unavailable under AOT; it degrades gracefully to the config-based 'Using' sources
+             Allowlisting them lets Native AOT publish succeed while keeping TreatWarningsAsErrors for everything else. -->
+        <WarningsNotAsErrors>IL2026;IL2104;IL3053;IL3000;IL3002</WarningsNotAsErrors>
     </PropertyGroup>
 
 
@@ -21,5 +28,25 @@
       <PackageReference Include="Dapper.AOT" Version="1.0.48" />
       <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.8" />
       <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="9.0.8" />
+      <PackageReference Include="Serilog" Version="4.4.0" />
+      <PackageReference Include="Serilog.Extensions.Hosting" Version="9.0.0" />
+      <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+      <PackageReference Include="Serilog.Settings.Configuration" Version="9.0.0" />
+    </ItemGroup>
+
+    <!-- Serilog's config-driven logging (ReadFrom.Configuration) instantiates sinks and formatters from
+         strings in appsettings.json via reflection; root those assemblies so trimming/AOT keeps them. -->
+    <ItemGroup>
+      <TrimmerRootAssembly Include="Serilog.Sinks.Console" />
+      <TrimmerRootAssembly Include="SS14.Labeller" />
+    </ItemGroup>
+
+    <!-- This dev machine has no Windows 10 SDK installed, so NativeAOT win-x64 linking fails with
+         LNK1181 (advapi32.lib, kernel32.lib, ucrt.lib, ... cannot be found). Visual Studio ships a full
+         set of these import libraries under its ScopeCppSDK folder; point the linker at them when present.
+         Machines with a real Windows SDK (or non-Windows RIDs) are unaffected: this stays inert there. -->
+    <ItemGroup>
+      <AdditionalNativeLibraryDirectories Include="C:\Program Files\Microsoft Visual Studio\18\Enterprise\SDK\ScopeCppSDK\vc15\SDK\lib"
+                                          Condition="Exists('C:\Program Files\Microsoft Visual Studio\18\Enterprise\SDK\ScopeCppSDK\vc15\SDK\lib')" />
     </ItemGroup>
 </Project>
