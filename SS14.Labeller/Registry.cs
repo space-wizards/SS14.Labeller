@@ -18,6 +18,7 @@ public static class Registry
     public static void RegisterDependencies(this IServiceCollection service, IConfiguration configuration)
     {
         Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(configuration)
+                                              .Enrich.WithProperty("ApplicationName", "SS14.Labeller") // TODO: move to AppSettings.json when NAOT will be removed
                                               .CreateLogger();
 
         service.AddSerilog();
