@@ -23,21 +23,21 @@ public sealed class SerilogNAOTSafeJsonConsoleFormatter : ITextFormatter
         {
             writer.WriteStartObject();
 
-            writer.WriteString("timestamp", logEvent.Timestamp.UtcDateTime.ToString("O", CultureInfo.InvariantCulture));
-            writer.WriteString("messageTemplate", logEvent.MessageTemplate.Render(logEvent.Properties, CultureInfo.InvariantCulture));
-            writer.WriteString("message", logEvent.RenderMessage());
+            writer.WriteString("Timestamp", logEvent.Timestamp.UtcDateTime.ToString("O", CultureInfo.InvariantCulture));
+            writer.WriteString("MessageTemplate", logEvent.MessageTemplate.Render(logEvent.Properties, CultureInfo.InvariantCulture));
+            writer.WriteString("Message", logEvent.RenderMessage());
 
             if (logEvent.Level != LogEventLevel.Information)
-                writer.WriteString("level", logEvent.Level.ToString());
+                writer.WriteString("Level", logEvent.Level.ToString());
 
             if (logEvent.Exception is { } exception)
-                writer.WriteString("exception", exception.ToString());
+                writer.WriteString("Exception", exception.ToString());
 
             if (logEvent.TraceId is { } traceId)
-                writer.WriteString("traceId", traceId.ToHexString());
+                writer.WriteString("TraceId", traceId.ToHexString());
 
             if (logEvent.SpanId is { } spanId)
-                writer.WriteString("spanId", spanId.ToHexString());
+                writer.WriteString("SpanId", spanId.ToHexString());
 
             foreach (var property in logEvent.Properties)
             {
