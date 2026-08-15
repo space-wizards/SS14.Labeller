@@ -41,12 +41,4 @@
       <TrimmerRootAssembly Include="SS14.Labeller" />
     </ItemGroup>
 
-    <!-- This dev machine has no Windows 10 SDK installed, so NativeAOT win-x64 linking fails with
-         LNK1181 (advapi32.lib, kernel32.lib, ucrt.lib, ... cannot be found). Visual Studio ships a full
-         set of these import libraries under its ScopeCppSDK folder; point the linker at them when present.
-         Machines with a real Windows SDK (or non-Windows RIDs) are unaffected: this stays inert there. -->
-    <ItemGroup>
-      <AdditionalNativeLibraryDirectories Include="C:\Program Files\Microsoft Visual Studio\18\Enterprise\SDK\ScopeCppSDK\vc15\SDK\lib"
-                                          Condition="Exists('C:\Program Files\Microsoft Visual Studio\18\Enterprise\SDK\ScopeCppSDK\vc15\SDK\lib')" />
-    </ItemGroup>
 </Project>
