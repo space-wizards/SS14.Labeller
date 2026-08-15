@@ -8,13 +8,6 @@
         <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
         <InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Dapper.AOT</InterceptorsPreviewNamespaces>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-        <!-- Known, accepted trim/AOT warnings for this app:
-             IL2026 - ValidateDataAnnotations() in Registry.cs (config classes are kept via source-generated binding)
-             IL2104/IL3053 - Dapper, Microsoft.Data.Sqlite & Serilog.Settings.Configuration assemblies emit trim/AOT warnings
-             IL3000/IL3002 - Serilog.Settings.Configuration's assembly finder uses DependencyContext/Assembly.Location,
-                             which are unavailable under AOT; it degrades gracefully to the config-based 'Using' sources
-             Allowlisting them lets Native AOT publish succeed while keeping TreatWarningsAsErrors for everything else. -->
-        <WarningsNotAsErrors>IL2026;IL2104;IL3053;IL3000;IL3002</WarningsNotAsErrors>
     </PropertyGroup>
 
 
