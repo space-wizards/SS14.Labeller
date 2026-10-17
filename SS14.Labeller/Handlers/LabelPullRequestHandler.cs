@@ -84,7 +84,7 @@ public partial class LabelPullRequestHandler(
             await labelManager.EnsureLabeled(request, sizeLabel, ct);
         }
 
-        if(!ContainsLabelsStartingWith(labels, "A:", "T:", "P:"))
+        if(!ContainsLabelsStartingWith(labels, "A:", "T:", "P"))
             await labelManager.EnsureLabeled(request, StatusLabel.Untriaged, ct);
 
         var changedFiles = await client.GetChangedFiles(repository, prNumber, ct);
