@@ -9,7 +9,10 @@ Create the a file called appsettings.json like so:
 {
   "GitHub": {
     "WebhookSecret": "mysecret",
-    "Token": "github_pat_AAAA"
+    "AuthMode": "Pat",
+    "Token": "github_pat_AAAA",
+    "Owner": "space-wizards",
+    "Repo": "space-station-14"
   },
   "Discourse": {
     "Enable": false,
@@ -29,7 +32,15 @@ To set the port, use the `ASPNETCORE_URLS` environment variable, e.g. `ASPNETCOR
 
 #### GitHub
 *WebhookSecret*: The secret you set for your webhook.\
-*Token*: A GitHub PAT token.
+*AuthMode*: `Pat` or `App`. Must be filled..\
+*Token*: A GitHub PAT token. Required when `AuthMode` is `Pat`.\
+*Owner*: The GitHub repository owner (user or organization). Required when `AuthMode` is `App`.\
+*Repo*: The GitHub repository name. Required when `AuthMode` is `App`.\
+*AppId*: The GitHub App ID. Required when `AuthMode` is `App`.\
+*AppPrivateKey*: The PEM-encoded private key of the GitHub App. Required when `AuthMode` is `App`.\
+
+The token must have the `Issues` and `Pull requests` scopes enabled for read and write access.
+When using `AuthMode: App`, install the GitHub App on the target repository (or organization) and grant it the `Issues` and `Pull requests` permissions for read and write.
 
 #### Discourse
 *Enable*: Whether to enable the discourse integration. If false, you can leave the rest unset.\

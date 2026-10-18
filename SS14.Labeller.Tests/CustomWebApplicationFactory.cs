@@ -52,6 +52,9 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 { "Discourse:Url", "http://wa.wa" },
                 { "GitHub:WebhookSecret", IntegrationTests.HookSecret },
                 { "GitHub:Token", "test-test" },
+                { "GitHub:Owner", "owner" },
+                { "GitHub:Repo", "repo" },
+                { "GitHub:AuthMode", "Pat" },
             });
         });
     }

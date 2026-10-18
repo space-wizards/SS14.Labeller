@@ -1,18 +1,24 @@
 ﻿using System.Text.Json;
 using System.Text;
+using Microsoft.Extensions.Options;
+using SS14.Labeller.Configuration;
+using SS14.Labeller.Labelling.Labels;
 using SS14.Labeller.Messages;
 using SS14.Labeller.Models;
-using SS14.Labeller.Labelling.Labels;
 
 namespace SS14.Labeller.GitHubApi;
 
-public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
+public class GitHubApiClient(HttpClient httpClient, IOptions<GitHubConfig> config) : IGitHubApiClient
 {
     private const string BaseUrl = "https://api.github.com";
+
+    private readonly GitHubConfig _config = config.Value;
 
     /// <inheritdoc />
     public async Task AddLabel(string owner, string repoName, int number, LabelBase label, CancellationToken ct)
     {
+        EnsureCallingConfiguredRepo(owner, repoName);
+
         var request = new AddLabelRequest { labels = [label] };
         var json = JsonSerializer.Serialize(request, SourceGenerationContext.Default.AddLabelRequest);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -28,6 +34,8 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
     /// <inheritdoc />
     public async Task RemoveLabel(string owner, string repoName, int number, LabelBase label, CancellationToken ct)
     {
+        EnsureCallingConfiguredRepo(owner, repoName);
+
         await httpClient.DeleteAsync($"{BaseUrl}/repos/{owner}/{repoName}/issues/{number}/labels/{Uri.EscapeDataString(label)}", ct);
     }
 
@@ -38,6 +46,8 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
 
     public async Task<List<string>> GetChangedFiles(GithubRepo repo, int prNumber, CancellationToken ct)
     {
+        EnsureCallingConfiguredRepo(repo.Owner.Login, repo.Name);
+
         // TODO: Ratelimit? Might explode on big PRs???
         // TODO: Update to use ParseNextPageUrl
 
@@ -66,6 +76,8 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
     /// <inheritdoc />
     public async Task<bool> IsMaintainer(string? user, GithubRepo repo, CancellationToken ct)
     {
+        EnsureCallingConfiguredRepo(repo.Owner.Login, repo.Name);
+
         var permRes = await httpClient.GetAsync($"{BaseUrl}/repos/{repo.Owner.Login}/{repo.Name}/collaborators/{user}/permission", ct);
         if (!permRes.IsSuccessStatusCode)
         {
@@ -79,6 +91,8 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
 
     public async Task AddComment(GithubRepo repo, int number, string comment, CancellationToken ct)
     {
+        EnsureCallingConfiguredRepo(repo.Owner.Login, repo.Name);
+
         var request = new AddCommentRequest { body = $"{comment}\n\n{StatusMessages.CommentPostfix}" };
         var json = JsonSerializer.Serialize(request, SourceGenerationContext.Default.AddCommentRequest);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -88,6 +102,8 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
 
     public async Task<List<IssueComment>> GetComments(GithubRepo repo, int prNumber, CancellationToken ct)
     {
+        EnsureCallingConfiguredRepo(repo.Owner.Login, repo.Name);
+
         var allComments = new List<IssueComment>();
         var url = $"{BaseUrl}/repos/{repo.Owner.Login}/{repo.Name}/issues/{prNumber}/comments?per_page=100";
 
@@ -112,6 +128,17 @@ public class GitHubApiClient(HttpClient httpClient) : IGitHubApiClient
 
 
         return allComments;
+    }
+
+    private void EnsureCallingConfiguredRepo(string owner, string repo)
+    {
+        if (!string.Equals(owner, _config.Owner)
+            || !string.Equals(repo, _config.Repo))
+        {
+            throw new InvalidOperationException(
+                $"GitHub API request to '{owner}/{repo}' does not match the configured repository: " +
+                $"'{_config.Owner}/{_config.Repo}'. Requests to other repositories would not be authenticated.");
+        }
     }
 
     private static string? ParseNextPageUrl(string? linkHeader)
