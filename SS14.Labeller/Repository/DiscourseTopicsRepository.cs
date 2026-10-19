@@ -13,8 +13,9 @@ public class DiscourseTopicsRepository(IConfiguration configuration)
         {
             RepoOwner = owner,
             RepoName = repoName,
-            IssueNumber = issueNumber
-        }.Query(connection, ct);
+            IssueNumber = issueNumber,
+            CancellationToken = ct
+        }.Query(connection);
     }
 
     public async Task<bool> HasTopic(string repoOwner, string repoName, int issueNumber, CancellationToken ct)
@@ -30,7 +31,8 @@ public class DiscourseTopicsRepository(IConfiguration configuration)
             IssueNumber = issueNumber,
             RepoName = name,
             RepoOwner = owner,
-            TopicId = topicId
-        }.Execute(connection, ct);
+            TopicId = topicId,
+            CancellationToken = ct
+        }.Execute(connection);
     }
 }
