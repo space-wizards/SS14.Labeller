@@ -11,17 +11,13 @@ public class FindTopicQuery : DatabaseQueryBase<int?>
 
     public required int IssueNumber { get; init; }
 
-    public override async Task<int?> Query(DbConnection connection, CancellationToken ct)
+    public override async Task<int?> Query(DbConnection connection)
     {
-        var cd = GetCommand(ct);
-        return await connection.QueryFirstOrDefaultAsync<int>(cd);
+        return await connection.QueryFirstOrDefaultAsync<int?>(Sql, this);
     }
 
     private const string Sql = $"""
                                 SELECT TopicId FROM Discussions 
                                 WHERE RepoOwner = @{nameof(RepoOwner)} AND RepoName = @{nameof(RepoName)} AND IssueNumber = @{nameof(IssueNumber)}
                                 """;
-
-    /// <inheritdoc />
-    protected override string GetSql() => Sql;
 }
