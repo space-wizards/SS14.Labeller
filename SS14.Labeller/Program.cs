@@ -1,11 +1,5 @@
 using Dapper;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using SS14.Labeller.Configuration;
 using SS14.Labeller.Endpoints;
-using SS14.Labeller.Handlers;
-using SS14.Labeller.Middlewares;
-using SS14.Labeller.Models;
 
 [module:DapperAot]
 
@@ -31,6 +25,9 @@ public class Program
         app.UseHttpLogging();
 
         app.MapGet("/", () => Results.Ok("Nik is a cat!"));
+
+        app.MapHealthChecks("/health");
+
         app.MapGithubWebhook();
         
         app.Run();
