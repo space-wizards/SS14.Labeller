@@ -39,7 +39,7 @@ public class GithubRetryHandlerTests
         _mockInnerHandler.Send(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>())
                          .Returns(Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.OK }));
 
-        var handler = new GithubRetryHandler(_mockInnerHandler, _config, _logger);
+        var handler = new GithubRetryHandler(_config, _logger) { InnerHandler = _mockInnerHandler };
         var httpClient = new HttpClient(handler);
 
         // Act
@@ -59,7 +59,7 @@ public class GithubRetryHandlerTests
                              _=>  Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.OK })
                         );
 
-        var handler = new GithubRetryHandler(_mockInnerHandler, _config, _logger);
+        var handler = new GithubRetryHandler(_config, _logger) { InnerHandler = _mockInnerHandler };
         var httpClient = new HttpClient(handler);
 
         // Act
@@ -87,7 +87,7 @@ public class GithubRetryHandlerTests
         _mockInnerHandler.Send(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>())
                          .Returns(response1, response2);
 
-        var handler = new GithubRetryHandler(_mockInnerHandler, _config, _logger);
+        var handler = new GithubRetryHandler(_config, _logger) { InnerHandler = _mockInnerHandler };
         var httpClient = new HttpClient(handler);
 
         // Act
@@ -108,7 +108,7 @@ public class GithubRetryHandlerTests
 
         _gitHubConfig.MaxRetryAttempt = 2;
 
-        var handler = new GithubRetryHandler(_mockInnerHandler, _config, _logger);
+        var handler = new GithubRetryHandler(_config, _logger) { InnerHandler = _mockInnerHandler };
         var httpClient = new HttpClient(handler);
 
         // Act & Assert

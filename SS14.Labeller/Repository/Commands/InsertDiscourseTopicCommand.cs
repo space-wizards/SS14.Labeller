@@ -13,17 +13,13 @@ public class InsertDiscourseTopicCommand : DatabaseCommandBase<int>
 
     public required int TopicId { get; init; }
 
-    public override async Task<int> Execute(DbConnection connection, CancellationToken ct)
+    public override async Task<int> Execute(DbConnection connection)
     {
-        var cd = GetCommand(ct);
-        return await connection.ExecuteAsync(cd);
+        return await connection.ExecuteAsync(Sql, this);
     }
 
     private const string Sql = $"""
                                 INSERT INTO Discussions (RepoOwner, RepoName, IssueNumber, TopicId)
                                 VALUES (@{nameof(RepoOwner)}, @{nameof(RepoName)}, @{nameof(IssueNumber)}, @{nameof(TopicId)});
                                 """;
-
-    /// <inheritdoc />
-    protected override string GetSql() => Sql;
 }
