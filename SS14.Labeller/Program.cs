@@ -1,11 +1,6 @@
 using Dapper;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using SS14.Labeller.Configuration;
+using Serilog;
 using SS14.Labeller.Endpoints;
-using SS14.Labeller.Handlers;
-using SS14.Labeller.Middlewares;
-using SS14.Labeller.Models;
 
 [module:DapperAot]
 
@@ -21,9 +16,6 @@ public class Program
         builder.Configuration.AddJsonFile("appsettings.Secret.json", true, true);
         builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", true, true);
 
-        builder.Logging.ClearProviders();
-        builder.Logging.AddConsole();
-
         builder.Services.RegisterDependencies(builder.Configuration);
 
         var app = builder.Build();
@@ -34,5 +26,7 @@ public class Program
         app.MapGithubWebhook();
         
         app.Run();
+
+        Log.CloseAndFlush();
     }
 }

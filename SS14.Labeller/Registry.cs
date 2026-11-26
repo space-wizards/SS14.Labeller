@@ -9,6 +9,7 @@ using SS14.Labeller.Repository;
 using System.Net.Http.Headers;
 using Polly;
 using Polly.Extensions.Http;
+using Serilog;
 
 namespace SS14.Labeller;
 
@@ -16,6 +17,12 @@ public static class Registry
 {
     public static void RegisterDependencies(this IServiceCollection service, IConfiguration configuration)
     {
+        Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(configuration)
+                                              .Enrich.WithProperty("ApplicationName", "SS14.Labeller") // TODO: move to AppSettings.json when NAOT will be removed
+                                              .CreateLogger();
+
+        service.AddSerilog();
+
 #pragma warning disable IL2026
         service.AddOptions<DiscourseConfig>()
                .Bind(configuration.GetSection(DiscourseConfig.Name))
